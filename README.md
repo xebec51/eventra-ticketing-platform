@@ -234,6 +234,8 @@ AUTH_SECRET=
 NEXT_PUBLIC_APP_URL=http://localhost:3000
 ```
 
+If your Postgres provider appends `sslmode=require`, switch it to `sslmode=verify-full` to match the current secure behavior expected by `pg`.
+
 Production example:
 
 ```env

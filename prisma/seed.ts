@@ -14,10 +14,11 @@ import {
   PaymentMethod,
   TicketStatus,
 } from "../app/generated/prisma/client";
+import { getDatabaseUrl } from "../lib/database-url";
 import { buildQrPayload } from "../lib/qr";
 
 const adapter = new PrismaPg({
-  connectionString: process.env.DATABASE_URL!,
+  connectionString: getDatabaseUrl(),
 });
 
 const prisma = new PrismaClient({ adapter });
