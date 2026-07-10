@@ -1,66 +1,173 @@
 # Eventra
 
-Eventra is a smart event ticketing platform for campus programs, community events, seminars, workshops, competitions, and other approval-driven small-to-mid scale events. It combines public event discovery with role-based operational dashboards for admins, organizers, and attendees.
+<p align="center">
+  <img src="https://img.shields.io/badge/Smart-Event%20Ticketing%20Platform-111827?style=for-the-badge" />
+  <img src="https://img.shields.io/badge/Status-Live%20Portfolio%20Project-16A34A?style=for-the-badge" />
+  <img src="https://img.shields.io/badge/License-MIT-2563EB?style=for-the-badge" />
+</p>
+
+<p align="center">
+  <a href="https://eventra-ticketing-platform.vercel.app/">
+    <img src="https://img.shields.io/badge/Live%20Demo-Open%20on%20Vercel-000000?style=for-the-badge&logo=vercel&logoColor=white" />
+  </a>
+  <a href="https://github.com/xebec51/eventra-ticketing-platform">
+    <img src="https://img.shields.io/badge/Repository-View%20Source-181717?style=for-the-badge&logo=github&logoColor=white" />
+  </a>
+</p>
+
+<p align="center">
+  <strong>Approval-driven event ticketing platform for campus programs, seminars, workshops, competitions, community events, and small-to-mid scale operations.</strong>
+</p>
+
+<p align="center">
+  Eventra combines public event discovery with role-based dashboards for admins, organizers, and attendees in one cohesive product flow.
+</p>
+
+<p align="center">
+  <a href="https://eventra-ticketing-platform.vercel.app/"><strong>Live Demo</strong></a>
+  |
+  <a href="#demo-accounts"><strong>Demo Accounts</strong></a>
+  |
+  <a href="#setup"><strong>Setup Guide</strong></a>
+  |
+  <a href="#features"><strong>Features</strong></a>
+</p>
+
+---
 
 ## Overview
 
-Eventra focuses on operational clarity:
+Eventra is a smart event ticketing platform designed to handle both the public-facing discovery experience and the operational complexity behind approvals, bookings, ticket issuance, payment review, check-in, reporting, and moderation.
 
-- Guests can browse public events and event details.
-- Users can register, book tickets, upload manual payment proof, collect QR tickets, save favorites, and submit reviews after attending.
-- Organizers can manage events, ticket types, bookings, payments, check-in, analytics, and exports within their own scope.
-- Admins can moderate platform activity, approve organizers, manage users and categories, review payments, moderate reviews, export reports, and inspect audit logs.
+It is built as a portfolio-grade SaaS-style application with realistic business rules, role-aware access control, and deployable production behavior.
 
-## Feature Summary
+Core product focus:
 
-### Public
+- public event exploration and event detail browsing
+- role-based authentication and dashboard access
+- organizer approval workflow
+- booking and manual payment review flow
+- QR-based ticket delivery and verification
+- check-in operations
+- organizer and admin reporting
 
-- Landing page with featured, upcoming, and popular events
-- Searchable event catalog
-- Category and city filtering
-- Public event detail pages
-- Public ticket verification route at `/verify/[ticketCode]`
+---
 
-### Auth and Access Control
+## Live Demo
 
-- NextAuth/Auth.js credentials login
-- Role-aware dashboard redirects
-- Protected dashboard routes through `proxy.ts`
-- Organizer status routing for `PENDING` and `REJECTED`
+- Deployment: `https://eventra-ticketing-platform.vercel.app/`
+- Platform: Vercel
+- Database: Neon PostgreSQL
 
-### Admin
+---
 
-- Organizer approval and rejection
-- User status management
-- Category management
-- Global event, booking, and payment oversight
-- Review moderation
-- Analytics dashboards
-- XLSX exports for bookings and attendees
-- Activity log audit trail
+## Highlights
 
-### Organizer
+- Public event discovery with role-aware operational dashboards
+- Admin, organizer, and user workflows inside one unified platform
+- Approval-driven booking lifecycle with separate booking and payment states
+- QR ticket generation and public verification route
+- Organizer moderation and admin oversight
+- XLSX export support for operational reporting
+- Prisma + PostgreSQL data model designed around realistic ticketing workflows
 
-- Organizer profile management
-- Event CRUD and publishing workflow
-- Ticket type management
-- Booking and payment review
-- Cash-on-venue approval flow
-- Ticket check-in by ticket code
-- Analytics dashboard and scoped exports
+---
 
-### User
+## Features
 
-- Registration and login
-- Ticket booking
-- Manual payment proof submission
-- Booking history and booking detail
-- QR ticket wallet
-- Favorite events
-- Review submission after event completion and used-ticket validation
-- Profile management
+### Public Experience
+
+- landing page with featured, popular, and upcoming events
+- searchable event catalog
+- category and city filtering
+- event detail pages
+- public ticket verification route at `/verify/[ticketCode]`
+
+### Authentication & Access Control
+
+- credentials-based authentication with NextAuth/Auth.js
+- role-aware dashboard redirects
+- protected dashboard routes through `proxy.ts`
+- organizer status handling for `PENDING` and `REJECTED`
+
+### Admin Workspace
+
+- approve or reject organizer accounts
+- manage user statuses
+- manage event categories
+- oversee events, bookings, and payments
+- moderate event reviews
+- inspect activity logs
+- analytics and XLSX export support
+
+### Organizer Workspace
+
+- manage organizer profile
+- create and manage events
+- configure ticket types
+- review bookings and manual payments
+- approve cash-on-venue bookings
+- check in attendees by ticket code
+- access organizer analytics and reports
+
+### User Experience
+
+- register and sign in
+- book tickets
+- submit payment proof manually
+- view booking history and booking detail
+- access QR ticket wallet
+- save favorite events
+- submit post-event reviews
+- manage personal profile
+
+---
+
+## Roles
+
+### ADMIN
+
+- platform moderation and global oversight
+- organizer approval and rejection
+- user and category management
+- booking, payment, review, and analytics supervision
+
+### ORGANIZER
+
+- event and ticket management
+- booking review and payment verification
+- attendee check-in
+- scoped reporting and analytics
+
+### USER
+
+- browse events
+- book tickets
+- upload payment proof
+- manage favorites, reviews, and profile
+
+### Guest
+
+- browse public events
+- view event details
+- verify tickets publicly by code
+
+---
 
 ## Tech Stack
+
+<p align="left">
+  <img src="https://img.shields.io/badge/Next.js-16-000000?style=flat-square&logo=next.js&logoColor=white" />
+  <img src="https://img.shields.io/badge/React-19-149ECA?style=flat-square&logo=react&logoColor=white" />
+  <img src="https://img.shields.io/badge/TypeScript-Strict-3178C6?style=flat-square&logo=typescript&logoColor=white" />
+  <img src="https://img.shields.io/badge/Tailwind-v4-38BDF8?style=flat-square&logo=tailwindcss&logoColor=white" />
+  <img src="https://img.shields.io/badge/Prisma-ORM-2D3748?style=flat-square&logo=prisma&logoColor=white" />
+  <img src="https://img.shields.io/badge/PostgreSQL-Neon-336791?style=flat-square&logo=postgresql&logoColor=white" />
+  <img src="https://img.shields.io/badge/NextAuth-Auth.js-4B5563?style=flat-square" />
+  <img src="https://img.shields.io/badge/Zod-Validation-3B82F6?style=flat-square" />
+  <img src="https://img.shields.io/badge/Recharts-Analytics-E11D48?style=flat-square" />
+  <img src="https://img.shields.io/badge/XLSX-Export-15803D?style=flat-square" />
+</p>
 
 - Next.js 16.2.10 App Router
 - React 19
@@ -79,54 +186,48 @@ Eventra focuses on operational clarity:
 - date-fns
 - bcryptjs
 
-## Roles
-
-- `ADMIN`
-- `ORGANIZER`
-- `USER`
-- Guest
+---
 
 ## Core Business Rules
 
-### Organizer approval
+### Organizer Approval
 
-- Organizer registration creates a `User` with role `ORGANIZER` and status `PENDING`.
-- Admin approval sets the organizer user to `ACTIVE` and stamps `approvedAt` plus `approvedBy`.
-- Admin rejection sets the organizer user to `REJECTED` and stores a rejection reason.
+- organizer registration creates a `User` with role `ORGANIZER` and status `PENDING`
+- admin approval sets organizer status to `ACTIVE` and records `approvedAt` plus `approvedBy`
+- admin rejection sets organizer status to `REJECTED` and stores a rejection reason
 
-### Booking and payment
+### Booking & Payment
 
-- `BookingStatus` and `PaymentStatus` are separate.
-- Free bookings use `FREE`, become `APPROVED` immediately, and issue tickets instantly.
-- `BANK_TRANSFER` and `E_WALLET` bookings start as `PENDING + UNPAID` and receive a 24-hour expiry deadline.
-- Payment proof submission changes payment state to `WAITING_CONFIRMATION`.
-- Payment verification marks the booking `PAID`, records verifier metadata, then approves the booking and generates tickets.
-- Invalid proof marks payment as `FAILED` while leaving the booking pending so the user can resubmit.
-- `CASH_ON_VENUE` creates a reservation without immediate payment, but tickets are only issued after organizer/admin approval.
-- Expired `PENDING + UNPAID` bookings become `CANCELLED` with the reason `Payment deadline expired`.
+- `BookingStatus` and `PaymentStatus` are separate
+- free bookings use `FREE`, become `APPROVED` immediately, and issue tickets instantly
+- `BANK_TRANSFER` and `E_WALLET` start as `PENDING + UNPAID` with a 24-hour expiry deadline
+- payment proof submission changes payment state to `WAITING_CONFIRMATION`
+- payment verification marks the booking `PAID`, records verifier metadata, approves the booking, and generates tickets
+- invalid proof marks payment as `FAILED` while leaving the booking pending for resubmission
+- `CASH_ON_VENUE` reserves inventory without immediate payment, but tickets still require approval
+- expired `PENDING + UNPAID` bookings become `CANCELLED`
 
-### Tickets and QR
+### Tickets & QR
 
-- Tickets are generated only after booking approval.
-- One ticket is generated per booked quantity.
-- QR images are not stored in the database.
-- The database stores only `ticketCode` and `qrPayload`.
-- The frontend renders QR images from `qrPayload`.
+- tickets are generated only after booking approval
+- one ticket is generated per booked quantity
+- QR images are not stored in the database
+- only `ticketCode` and `qrPayload` are stored
+- the frontend renders the QR image from `qrPayload`
 
-### Check-in
+### Check-in & Reviews
 
-- Check-in is tracked at ticket level, not booking level.
-- A valid ticket becomes `USED` after successful check-in.
-- Duplicate check-in is blocked.
+- check-in is tracked at ticket level
+- a valid ticket becomes `USED` after successful check-in
+- duplicate check-in is blocked
+- reviews require the event to be finished
+- reviews require at least one `USED` ticket for that event
+- one booking can only produce one review
+- one user can only review an event once
 
-### Reviews
+---
 
-- Reviews require the event to be finished.
-- Reviews require at least one `USED` ticket for that event.
-- One booking can only produce one review.
-- One user can only review a given event once.
-
-## Database / ERD Summary
+## Database Summary
 
 Implemented Prisma models:
 
@@ -142,13 +243,15 @@ Implemented Prisma models:
 - `EventReview`
 - `ActivityLog`
 
-Important relationships:
+Key relationships:
 
 - `events.organizer_profile_id` references `organizer_profiles.id`
 - `booking_items` belong to `bookings` and `ticket_types`
 - `tickets` belong to `bookings`, `booking_items`, `events`, `users`, and `ticket_types`
 - `event_reviews.booking_id` is unique
 - `favorite_events.user_id + event_id` is unique
+
+---
 
 ## Routes
 
@@ -165,7 +268,7 @@ Important relationships:
 - `/rejected-organizer`
 - `/unauthorized`
 
-### Shared dashboard
+### Shared Dashboard
 
 - `/dashboard`
 - `/dashboard/profile`
@@ -204,15 +307,17 @@ Important relationships:
 - `/dashboard/user/reviews`
 - `/dashboard/user/profile`
 
+---
+
 ## Demo Accounts
 
-All demo accounts use the password:
+All demo accounts use:
 
 ```text
 Password123!
 ```
 
-Accounts:
+Available accounts:
 
 - `admin@eventra.demo`
 - `organizer.alpha@eventra.demo`
@@ -222,7 +327,17 @@ Accounts:
 - `user.one@eventra.demo`
 - `user.two@eventra.demo`
 
-## Environment Variables
+---
+
+## Setup
+
+### 1. Install dependencies
+
+```bash
+npm install
+```
+
+### 2. Configure environment variables
 
 Required variables:
 
@@ -234,8 +349,6 @@ AUTH_SECRET=
 NEXT_PUBLIC_APP_URL=http://localhost:3000
 ```
 
-If your Postgres provider appends `sslmode=require`, switch it to `sslmode=verify-full` to match the current secure behavior expected by `pg`.
-
 Production example:
 
 ```env
@@ -243,43 +356,38 @@ NEXTAUTH_URL=https://eventra-ticketing-platform.vercel.app
 NEXT_PUBLIC_APP_URL=https://eventra-ticketing-platform.vercel.app
 ```
 
-Do not commit `.env`, `.env.local`, or any secret file.
+Notes:
 
-## Local Development
+- do not commit `.env`, `.env.local`, or any secret file
+- if your Postgres provider appends `sslmode=require`, switch it to `sslmode=verify-full`
 
-Install dependencies:
-
-```bash
-npm install
-```
-
-Generate the Prisma client:
+### 3. Generate Prisma client
 
 ```bash
 npx prisma generate
 ```
 
-Apply the local migration:
+### 4. Apply local migration
 
 ```bash
 npx prisma migrate dev
 ```
 
-Seed demo data:
+### 5. Seed demo data
 
 ```bash
 npm run seed
 ```
 
-Start the dev server:
+### 6. Start development server
 
 ```bash
 npm run dev
 ```
 
-## Validation Commands
+---
 
-Recommended validation:
+## Validation Commands
 
 ```bash
 npx prisma validate
@@ -288,66 +396,119 @@ npm run lint
 npm run build
 ```
 
-## Manual Payment Explanation
+---
+
+## Payment Model
+
+### Manual Payment
 
 Eventra simulates manual payment operations rather than integrating a live payment gateway.
 
-- Users create a paid booking.
-- They upload a payment proof URL.
-- Organizer or admin reviews the proof.
-- Valid proof marks the booking as paid and triggers approval.
-- Invalid proof keeps the booking pending with a failed payment state so the user can correct it.
+- users create a paid booking
+- users upload a payment proof URL
+- organizer or admin reviews the proof
+- valid proof marks the booking as paid and triggers approval
+- invalid proof keeps the booking pending with a failed payment state so the user can resubmit
 
-## Cash on Venue Explanation
+### Cash on Venue
 
-`CASH_ON_VENUE` acts as an offline seat reservation model.
+`CASH_ON_VENUE` acts as an offline seat reservation flow.
 
-- The user reserves inventory.
-- Payment is handled at the event venue.
-- Tickets still require organizer/admin approval before they are issued.
+- the user reserves inventory
+- payment is handled at the venue
+- tickets still require organizer or admin approval before issuance
 
-## Booking Status vs Payment Status
+### Booking Status vs Payment Status
 
 Examples:
 
-- `PENDING + UNPAID`: reservation created, awaiting user payment
-- `PENDING + WAITING_CONFIRMATION`: proof uploaded, awaiting review
-- `PENDING + FAILED`: proof rejected, user may resubmit
-- `APPROVED + PAID`: verified and approved
-- `APPROVED + NOT_REQUIRED`: free or approved cash-on-venue
-- `CANCELLED + UNPAID`: expired before payment
+- `PENDING + UNPAID`
+- `PENDING + WAITING_CONFIRMATION`
+- `PENDING + FAILED`
+- `APPROVED + PAID`
+- `APPROVED + NOT_REQUIRED`
+- `CANCELLED + UNPAID`
+
+---
 
 ## Deployment Notes
 
 ### Vercel
 
-- Set all environment variables in the Vercel project
-- Ensure `NEXTAUTH_URL` and `NEXT_PUBLIC_APP_URL` point to the deployed domain
-- The build script already runs `prisma generate && next build`
+- set all environment variables in the Vercel project
+- ensure `NEXTAUTH_URL` and `NEXT_PUBLIC_APP_URL` point to the deployed domain
+- the build script already runs `prisma generate && next build`
 
 ### Neon
 
-- Point `DATABASE_URL` to the Neon database
-- Run migrations against the production database before first use
+- point `DATABASE_URL` to the Neon database
+- run migrations against production before first use
+
+---
 
 ## Known Limitations
 
-- Payment proof is URL-based and does not include a real file upload pipeline
-- No live payment gateway integration is included
-- No QR scanner camera flow is included; check-in is manual by ticket code
-- Exports are generated as route-based XLSX downloads without background job processing
+- payment proof is URL-based and does not yet include a real upload pipeline
+- no live payment gateway integration
+- no QR scanner camera flow yet
+- exports are generated as route-based XLSX downloads without background jobs
+
+---
 
 ## Future Improvements
 
-- Real payment gateway integration
-- File uploads for payment proof and organizer branding assets
+- real payment gateway integration
+- file uploads for payment proof and organizer branding assets
 - QR scanner camera support
-- Email notifications for approvals, reminders, and check-in confirmations
-- Stronger search, pagination, and server-side filtering for large datasets
-- Automated scheduled expiry jobs instead of manual sync triggers
+- email notifications for approvals, reminders, and check-in confirmations
+- stronger search, pagination, and server-side filtering
+- automated scheduled expiry jobs
+
+---
 
 ## Repository Notes
 
 - Prisma client output is generated into `app/generated/prisma`
-- Seed data includes multiple booking/payment/ticket/review states for testing
-- The app is designed to remain deployable to Vercel with Neon-backed PostgreSQL
+- seed data includes multiple booking, payment, ticket, and review states
+- the project is designed to remain deployable on Vercel with Neon-backed PostgreSQL
+
+---
+
+## Author
+
+**Muh. Rinaldi Ruslan**
+
+- GitHub: [xebec51](https://github.com/xebec51)
+- Email: [rinaldi.ruslan51@gmail.com](mailto:rinaldi.ruslan51@gmail.com)
+- Instagram: [@rinaldiruslan](https://www.instagram.com/rinaldiruslan/)
+- TikTok: [@rinaldiruslan](https://www.tiktok.com/@rinaldiruslan)
+
+---
+
+## Connect With Me
+
+<p align="left">
+  <a href="https://github.com/xebec51">
+    <img src="https://img.shields.io/badge/GitHub-xebec51-181717?style=for-the-badge&logo=github&logoColor=white" />
+  </a>
+  <a href="mailto:rinaldi.ruslan51@gmail.com">
+    <img src="https://img.shields.io/badge/Email-rinaldi.ruslan51%40gmail.com-D14836?style=for-the-badge&logo=gmail&logoColor=white" />
+  </a>
+  <a href="https://www.instagram.com/rinaldiruslan/">
+    <img src="https://img.shields.io/badge/Instagram-rinaldiruslan-E4405F?style=for-the-badge&logo=instagram&logoColor=white" />
+  </a>
+  <a href="https://www.tiktok.com/@rinaldiruslan">
+    <img src="https://img.shields.io/badge/TikTok-rinaldiruslan-000000?style=for-the-badge&logo=tiktok&logoColor=white" />
+  </a>
+</p>
+
+---
+
+<p align="center">
+  <strong>Eventra</strong><br />
+  Built by <strong>Muh. Rinaldi Ruslan</strong> as a modern event ticketing portfolio project.
+</p>
+
+<p align="center">
+  Crafted with Next.js, Prisma, PostgreSQL, and approval-driven product workflows.
+</p>
