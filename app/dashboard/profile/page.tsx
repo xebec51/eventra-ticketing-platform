@@ -1,10 +1,68 @@
-import { GenericDashboardPage } from "@/components/eventra/dashboard-templates";
+import Link from "next/link";
 
-export default function DashboardProfilePage() {
+import { UserProfileForm } from "@/components/eventra/user-profile-form";
+import { StatusBadge } from "@/components/eventra/status-badge";
+import { buttonVariants } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { requireSessionUser } from "@/lib/auth";
+import { prisma } from "@/lib/prisma";
+import { cn } from "@/lib/utils";
+
+export default async function DashboardProfilePage() {
+  const sessionUser = await requireSessionUser();
+  const profileHref =
+    sessionUser.role === "USER"
+      ? "/dashboard/user/profile"
+      : sessionUser.role === "ORGANIZER"
+        ? "/dashboard/organizer/profile"
+        : "/dashboard/profile";
+  const user = await prisma.user.findUnique({
+    where: { id: sessionUser.id },
+    select: {
+      name: true,
+      email: true,
+      phone: true,
+      avatarUrl: true,
+    },
+  });
+
+  if (!user) {
+    return null;
+  }
+
   return (
-    <GenericDashboardPage
-      title="Shared profile center"
-      description="This route will adapt to the authenticated role and expose profile details, avatar fields, phone information, and role-specific metadata."
-    />
+    <div className="space-y-6">
+      <Card className="border border-black/5 bg-white/90">
+        <CardHeader>
+          <div className="flex flex-wrap items-center gap-2">
+            <StatusBadge label={sessionUser.role} tone="default" />
+            <StatusBadge label={sessionUser.status} tone="warning" />
+          </div>
+          <CardTitle className="mt-2 font-heading text-2xl">
+            Shared profile center
+          </CardTitle>
+          <p className="mt-2 text-sm leading-6 text-muted-foreground">
+            Use this landing page to understand your current account state, then
+            jump to the role-specific profile editor that fits your workflow.
+          </p>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="rounded-3xl border border-black/5 bg-slate-50 p-5">
+            <p className="font-semibold text-slate-950">{user.name}</p>
+            <p className="mt-1 text-sm text-muted-foreground">{user.email}</p>
+          </div>
+          {sessionUser.role === "ADMIN" ? (
+            <UserProfileForm initialValues={user} />
+          ) : (
+            <Link
+              href={profileHref}
+              className={cn(buttonVariants({ size: "lg" }))}
+            >
+              Open role-specific profile
+            </Link>
+          )}
+        </CardContent>
+      </Card>
+    </div>
   );
 }
