@@ -9,6 +9,7 @@ import {
 import { StatusBadge } from "@/components/eventra/status-badge";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { formatCurrency } from "@/lib/formatters";
 import { prisma } from "@/lib/prisma";
 import { cn } from "@/lib/utils";
 
@@ -22,6 +23,15 @@ export default async function AdminEventsPage({
     include: {
       category: { select: { name: true } },
       organizerProfile: { select: { organizationName: true } },
+      ticketTypes: {
+        orderBy: { createdAt: "asc" },
+        select: {
+          id: true,
+          name: true,
+          price: true,
+          isActive: true,
+        },
+      },
       _count: {
         select: {
           bookings: true,
@@ -38,7 +48,8 @@ export default async function AdminEventsPage({
         <div>
           <CardTitle className="font-heading text-2xl">All events</CardTitle>
           <p className="mt-2 text-sm text-muted-foreground">
-            Admins can inspect organizer-owned events and apply publish, draft, or cancel status changes.
+            Admins can inspect organizer-owned events and apply publish, draft,
+            or cancel status changes.
           </p>
         </div>
         <Link
@@ -51,7 +62,8 @@ export default async function AdminEventsPage({
       <CardContent className="space-y-4">
         {error === "missing-ticket-types" ? (
           <div className="rounded-2xl border border-amber-100 bg-amber-50 p-4 text-sm text-amber-800">
-            This event needs at least one active ticket type before it can be published.
+            This event needs at least one active ticket type before it can be
+            published.
           </div>
         ) : null}
         {events.map((event) => (
@@ -62,7 +74,16 @@ export default async function AdminEventsPage({
             <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
               <div className="space-y-3">
                 <div className="flex flex-wrap items-center gap-2">
-                  <StatusBadge label={event.status} tone={event.status === "PUBLISHED" ? "success" : event.status === "CANCELLED" ? "danger" : "warning"} />
+                  <StatusBadge
+                    label={event.status}
+                    tone={
+                      event.status === "PUBLISHED"
+                        ? "success"
+                        : event.status === "CANCELLED"
+                          ? "danger"
+                          : "warning"
+                    }
+                  />
                   <StatusBadge label={event.visibility} tone="muted" />
                   <StatusBadge label={event.category.name} tone="default" />
                 </div>
@@ -71,18 +92,33 @@ export default async function AdminEventsPage({
                     {event.title}
                   </p>
                   <p className="mt-1 text-sm text-muted-foreground">
-                    {event.organizerProfile.organizationName} • {event.city} •{" "}
+                    {event.organizerProfile.organizationName} | {event.city} |{" "}
                     {format(event.startDatetime, "dd MMM yyyy, HH:mm")}
                   </p>
                 </div>
                 <p className="max-w-3xl text-sm leading-6 text-muted-foreground">
                   {event.description}
                 </p>
+                <div className="flex flex-wrap gap-2">
+                  {event.ticketTypes.map((ticketType) => (
+                    <StatusBadge
+                      key={ticketType.id}
+                      label={`${ticketType.name} | ${formatCurrency(ticketType.price.toString())}${ticketType.isActive ? "" : " | inactive"}`}
+                      tone={ticketType.isActive ? "muted" : "warning"}
+                    />
+                  ))}
+                </div>
               </div>
               <div className="space-y-3 xl:w-80">
                 <div className="grid grid-cols-2 gap-3 text-sm">
-                  <Metric label="Bookings" value={String(event._count.bookings)} />
-                  <Metric label="Ticket types" value={String(event._count.ticketTypes)} />
+                  <Metric
+                    label="Bookings"
+                    value={String(event._count.bookings)}
+                  />
+                  <Metric
+                    label="Ticket types"
+                    value={String(event._count.ticketTypes)}
+                  />
                 </div>
                 <div className="flex flex-wrap gap-2">
                   <form action={publishEventAction}>
