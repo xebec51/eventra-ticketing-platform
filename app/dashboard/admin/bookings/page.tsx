@@ -1,10 +1,129 @@
-import { GenericDashboardPage } from "@/components/eventra/dashboard-templates";
+import { runBookingExpirySyncAction } from "@/app/actions/bookings";
+import { BookingOperatorActions } from "@/components/eventra/booking-operator-actions";
+import { StatCard } from "@/components/eventra/stat-card";
+import { StatusBadge } from "@/components/eventra/status-badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { requireRole } from "@/lib/auth";
+import { formatCurrency, formatDateTime } from "@/lib/formatters";
+import { prisma } from "@/lib/prisma";
 
-export default function AdminBookingsPage() {
+export default async function AdminBookingsPage() {
+  await requireRole("ADMIN");
+  const bookings = await prisma.booking.findMany({
+    include: {
+      user: {
+        select: { name: true, email: true },
+      },
+      event: {
+        select: { title: true, city: true },
+      },
+      items: {
+        include: {
+          ticketType: {
+            select: { name: true },
+          },
+        },
+      },
+    },
+    orderBy: { createdAt: "desc" },
+  });
+
+  const pendingBookings = bookings.filter((booking) => booking.status === "PENDING").length;
+  const approvedBookings = bookings.filter((booking) => booking.status === "APPROVED").length;
+  const rejectedBookings = bookings.filter((booking) => booking.status === "REJECTED").length;
+  const revenue = bookings
+    .filter((booking) => booking.paymentStatus === "PAID")
+    .reduce((sum, booking) => sum + booking.totalAmount.toNumber(), 0);
+
   return (
-    <GenericDashboardPage
-      title="Global booking review"
-      description="Booking state, payment state, approval actions, and role-scoped filters will become available here in later phases."
-    />
+    <div className="space-y-6">
+      <div className="grid gap-4 xl:grid-cols-4">
+        <StatCard label="All bookings" value={String(bookings.length)} change="Platform-wide reservation volume" />
+        <StatCard label="Pending review" value={String(pendingBookings)} change="Still needs human action" tone="warning" />
+        <StatCard label="Approved" value={String(approvedBookings)} change="Ticket issuance completed" tone="success" />
+        <StatCard label="Paid revenue" value={formatCurrency(revenue)} change={`${rejectedBookings} rejected bookings`} />
+      </div>
+
+      <Card className="border border-black/5 bg-white/90">
+        <CardHeader className="flex flex-row items-center justify-between gap-4">
+          <div>
+            <CardTitle className="font-heading text-2xl">Global booking review</CardTitle>
+            <p className="mt-2 text-sm leading-6 text-muted-foreground">
+              Inspect any booking, sync expiry-based cancellations, and intervene
+              when organizers need platform-level support.
+            </p>
+          </div>
+          <form action={runBookingExpirySyncAction}>
+            <Button type="submit" variant="outline">
+              Sync expiry states
+            </Button>
+          </form>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {bookings.map((booking) => (
+            <div
+              key={booking.id}
+              className="grid gap-4 rounded-3xl border border-black/5 bg-slate-50 p-5 xl:grid-cols-[1.2fr_0.8fr]"
+            >
+              <div className="space-y-3">
+                <div className="flex flex-wrap items-center gap-2">
+                  <StatusBadge label={booking.bookingCode} tone="default" />
+                  <StatusBadge label={booking.event.city} tone="muted" />
+                </div>
+                <div>
+                  <p className="font-heading text-xl font-semibold text-slate-950">
+                    {booking.event.title}
+                  </p>
+                  <p className="mt-1 text-sm text-muted-foreground">
+                    Buyer: {booking.user.name} • {booking.user.email}
+                  </p>
+                </div>
+                <div className="grid gap-3 sm:grid-cols-2">
+                  <InfoCell label="Booked at" value={formatDateTime(booking.createdAt)} />
+                  <InfoCell label="Amount" value={formatCurrency(booking.totalAmount.toNumber())} />
+                  <InfoCell
+                    label="Items"
+                    value={booking.items
+                      .map((item) => `${item.ticketType.name} x${item.quantity}`)
+                      .join(" • ")}
+                  />
+                  <InfoCell
+                    label="Deadline"
+                    value={booking.expiresAt ? formatDateTime(booking.expiresAt) : "Not applicable"}
+                  />
+                </div>
+              </div>
+              <BookingOperatorActions
+                booking={{
+                  id: booking.id,
+                  bookingCode: booking.bookingCode,
+                  status: booking.status,
+                  paymentMethod: booking.paymentMethod,
+                  paymentStatus: booking.paymentStatus,
+                }}
+              />
+            </div>
+          ))}
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
+
+function InfoCell({
+  label,
+  value,
+}: {
+  label: string;
+  value: string;
+}) {
+  return (
+    <div className="rounded-2xl border border-black/5 bg-white px-4 py-3">
+      <p className="text-xs font-semibold uppercase tracking-[0.24em] text-muted-foreground">
+        {label}
+      </p>
+      <p className="mt-2 text-sm font-medium text-slate-950">{value}</p>
+    </div>
   );
 }

@@ -1,10 +1,138 @@
-import { GenericDashboardPage } from "@/components/eventra/dashboard-templates";
+import { notFound } from "next/navigation";
 
-export default function OrganizerPaymentsPage() {
+import { BookingOperatorActions } from "@/components/eventra/booking-operator-actions";
+import { PaymentStatusBadge } from "@/components/eventra/payment-status-badge";
+import { StatCard } from "@/components/eventra/stat-card";
+import { StatusBadge } from "@/components/eventra/status-badge";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { requireRole } from "@/lib/auth";
+import { formatCurrency, formatDateTime } from "@/lib/formatters";
+import { prisma } from "@/lib/prisma";
+
+export default async function OrganizerPaymentsPage() {
+  const user = await requireRole("ORGANIZER");
+  const organizerProfile = await prisma.organizerProfile.findUnique({
+    where: { userId: user.id },
+    select: { id: true },
+  });
+
+  if (!organizerProfile) {
+    notFound();
+  }
+
+  const bookings = await prisma.booking.findMany({
+    where: {
+      paymentMethod: {
+        in: ["BANK_TRANSFER", "E_WALLET", "CASH_ON_VENUE"],
+      },
+      event: {
+        organizerProfileId: organizerProfile.id,
+      },
+    },
+    include: {
+      user: {
+        select: { name: true, email: true },
+      },
+      event: {
+        select: { title: true },
+      },
+    },
+    orderBy: [{ paymentStatus: "asc" }, { createdAt: "desc" }],
+  });
+
+  const waitingConfirmations = bookings.filter(
+    (booking) => booking.paymentStatus === "WAITING_CONFIRMATION"
+  ).length;
+  const unpaidManual = bookings.filter(
+    (booking) => booking.paymentStatus === "UNPAID"
+  ).length;
+  const failedProofs = bookings.filter(
+    (booking) => booking.paymentStatus === "FAILED"
+  ).length;
+  const paidManualRevenue = bookings
+    .filter((booking) => booking.paymentStatus === "PAID")
+    .reduce((sum, booking) => sum + booking.totalAmount.toNumber(), 0);
+
   return (
-    <GenericDashboardPage
-      title="Organizer payments"
-      description="Manual proof verification, approval decisions, and failure messaging for your own events will live here."
-    />
+    <div className="space-y-6">
+      <div className="grid gap-4 xl:grid-cols-4">
+        <StatCard label="Waiting proofs" value={String(waitingConfirmations)} change="Ready for organizer review" tone="warning" />
+        <StatCard label="Unpaid manual" value={String(unpaidManual)} change="Still awaiting attendee upload" />
+        <StatCard label="Failed proofs" value={String(failedProofs)} change="Attendee can resubmit later" tone="danger" />
+        <StatCard label="Verified manual revenue" value={formatCurrency(paidManualRevenue)} change="Scoped to your events" tone="success" />
+      </div>
+
+      <Card className="border border-black/5 bg-white/90">
+        <CardHeader>
+          <CardTitle className="font-heading text-2xl">Organizer payments</CardTitle>
+          <p className="mt-2 text-sm leading-6 text-muted-foreground">
+            Stay on top of proof-based reservations and approve cash-on-venue
+            seat holds only when you are ready to issue tickets.
+          </p>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {bookings.map((booking) => (
+            <div
+              key={booking.id}
+              className="grid gap-4 rounded-3xl border border-black/5 bg-slate-50 p-5 xl:grid-cols-[1.15fr_0.85fr]"
+            >
+              <div className="space-y-3">
+                <div className="flex flex-wrap items-center gap-2">
+                  <StatusBadge label={booking.bookingCode} tone="default" />
+                  <PaymentStatusBadge status={booking.paymentStatus} />
+                  <StatusBadge label={booking.paymentMethod} tone="muted" />
+                </div>
+                <div>
+                  <p className="font-heading text-xl font-semibold text-slate-950">
+                    {booking.event.title}
+                  </p>
+                  <p className="mt-1 text-sm text-muted-foreground">
+                    {booking.user.name} • {booking.user.email}
+                  </p>
+                </div>
+                <div className="grid gap-3 sm:grid-cols-2">
+                  <InfoCell label="Amount" value={formatCurrency(booking.totalAmount.toNumber())} />
+                  <InfoCell label="Created at" value={formatDateTime(booking.createdAt)} />
+                  <InfoCell
+                    label="Proof URL"
+                    value={booking.paymentProofUrl ?? "No proof uploaded yet"}
+                  />
+                  <InfoCell
+                    label="Operator note"
+                    value={booking.paymentNotes ?? "No note yet"}
+                  />
+                </div>
+              </div>
+              <BookingOperatorActions
+                booking={{
+                  id: booking.id,
+                  bookingCode: booking.bookingCode,
+                  status: booking.status,
+                  paymentMethod: booking.paymentMethod,
+                  paymentStatus: booking.paymentStatus,
+                }}
+              />
+            </div>
+          ))}
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
+
+function InfoCell({
+  label,
+  value,
+}: {
+  label: string;
+  value: string;
+}) {
+  return (
+    <div className="rounded-2xl border border-black/5 bg-white px-4 py-3">
+      <p className="text-xs font-semibold uppercase tracking-[0.24em] text-muted-foreground">
+        {label}
+      </p>
+      <p className="mt-2 text-sm font-medium text-slate-950 break-all">{value}</p>
+    </div>
   );
 }

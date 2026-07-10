@@ -3,12 +3,14 @@ import { notFound } from "next/navigation";
 import { CalendarDays, Clock3, MapPin, Star, Ticket } from "lucide-react";
 
 import { BookingStatusBadge } from "@/components/eventra/booking-status-badge";
+import { BookingForm } from "@/components/eventra/booking-form";
 import { FavoriteEventButton } from "@/components/eventra/favorite-event-button";
 import { MarketingShell } from "@/components/eventra/marketing-shell";
 import { StatusBadge } from "@/components/eventra/status-badge";
 import { buttonVariants } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { getSessionUser } from "@/lib/auth";
+import { formatCurrency, formatDateTime } from "@/lib/formatters";
 import { prisma } from "@/lib/prisma";
 import { cn } from "@/lib/utils";
 
@@ -92,6 +94,26 @@ export default async function EventDetailPage({
     ? event.eventReviews.reduce((sum, review) => sum + review.rating, 0) /
       event.eventReviews.length
     : 0;
+  const bookingTicketTypes = event.ticketTypes.map((ticketType) => {
+    const reserved = reservedMap.get(ticketType.id) ?? 0;
+    const available = Math.max(ticketType.quota - reserved, 0);
+
+    return {
+      id: ticketType.id,
+      name: ticketType.name,
+      description: ticketType.description,
+      price: ticketType.price.toNumber(),
+      maxPerBooking: ticketType.maxPerBooking,
+      available,
+      salesWindowLabel:
+        ticketType.salesStartAt || ticketType.salesEndAt
+          ? `Sales ${ticketType.salesStartAt ? formatDateTime(ticketType.salesStartAt) : "now"}${
+              ticketType.salesEndAt ? ` to ${formatDateTime(ticketType.salesEndAt)}` : ""
+            }`
+          : null,
+    };
+  });
+  const isUserBooker = user?.role === "USER";
 
   return (
     <MarketingShell>
@@ -223,30 +245,33 @@ export default async function EventDetailPage({
                   </p>
                 </div>
                 <div className="grid gap-3">
-                  {event.ticketTypes.map((ticketType) => {
-                    const reserved = reservedMap.get(ticketType.id) ?? 0;
-                    const available = Math.max(ticketType.quota - reserved, 0);
-
-                    return (
-                      <TicketTier
-                        key={ticketType.id}
-                        name={ticketType.name}
-                        price={
-                          Number(ticketType.price.toString()) > 0
-                            ? `$${ticketType.price.toString()}`
-                            : "Free"
-                        }
-                        note={`${available} available | max ${ticketType.maxPerBooking} per booking`}
-                      />
-                    );
-                  })}
+                  {bookingTicketTypes.map((ticketType) => (
+                    <TicketTier
+                      key={ticketType.id}
+                      name={ticketType.name}
+                      price={
+                        ticketType.price > 0
+                          ? formatCurrency(ticketType.price)
+                          : "Free"
+                      }
+                      note={`${ticketType.available} available | max ${ticketType.maxPerBooking} per booking`}
+                    />
+                  ))}
                 </div>
-                <Link
-                  href={user ? "/dashboard/user/bookings" : "/login"}
-                  className={cn(buttonVariants({ size: "lg" }), "w-full")}
-                >
-                  {user ? "Continue to booking flow" : "Sign in to book"}
-                </Link>
+                {isUserBooker ? (
+                  <BookingForm
+                    eventId={event.id}
+                    eventTitle={event.title}
+                    ticketTypes={bookingTicketTypes}
+                  />
+                ) : (
+                  <Link
+                    href={user ? "/dashboard" : "/login"}
+                    className={cn(buttonVariants({ size: "lg" }), "w-full")}
+                  >
+                    {user ? "Open your dashboard" : "Sign in to book"}
+                  </Link>
+                )}
               </CardContent>
             </Card>
             <Card className="border border-black/5 bg-white/90">
