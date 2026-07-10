@@ -1,16 +1,182 @@
-import { GenericDashboardPage } from "@/components/eventra/dashboard-templates";
+import { format } from "date-fns";
+
+import {
+  cancelEventAction,
+  deleteEventAction,
+  publishEventAction,
+  unpublishEventAction,
+  updateEventAction,
+} from "@/app/actions/management";
+import { EventForm } from "@/components/eventra/event-form";
+import { StatusBadge } from "@/components/eventra/status-badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { requireRole } from "@/lib/auth";
+import { prisma } from "@/lib/prisma";
+
+function toDateTimeLocal(value: Date) {
+  return format(value, "yyyy-MM-dd'T'HH:mm");
+}
 
 export default async function OrganizerEventDetailPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ id: string }>;
+  searchParams: Promise<{ error?: string }>;
 }) {
-  const { id } = await params;
+  const [{ id }, { error }] = await Promise.all([params, searchParams]);
+  const user = await requireRole("ORGANIZER");
+  const organizerProfile = await prisma.organizerProfile.findUnique({
+    where: { userId: user.id },
+    select: { id: true },
+  });
+
+  if (!organizerProfile) {
+    return null;
+  }
+
+  const [categories, event] = await Promise.all([
+    prisma.eventCategory.findMany({
+      select: { id: true, name: true },
+      orderBy: { name: "asc" },
+    }),
+    prisma.event.findFirst({
+      where: {
+        id,
+        organizerProfileId: organizerProfile.id,
+      },
+      include: {
+        category: { select: { name: true } },
+        _count: {
+          select: {
+            bookings: true,
+            ticketTypes: true,
+          },
+        },
+      },
+    }),
+  ]);
+
+  if (!event) {
+    return null;
+  }
 
   return (
-    <GenericDashboardPage
-      title={`Event workspace ${id}`}
-      description="This event-level route will host event editing, ticket type management, attendee metrics, and publishing controls."
-    />
+    <div className="space-y-6">
+      {error === "missing-ticket-types" ? (
+        <div className="rounded-2xl border border-amber-100 bg-amber-50 p-4 text-sm text-amber-800">
+          Add at least one active ticket type before publishing this event.
+        </div>
+      ) : null}
+      {error === "event-has-bookings" ? (
+        <div className="rounded-2xl border border-amber-100 bg-amber-50 p-4 text-sm text-amber-800">
+          This event already has bookings, so it cannot be deleted safely.
+        </div>
+      ) : null}
+      <div className="grid gap-6 xl:grid-cols-[1.05fr_0.95fr]">
+        <Card className="border border-black/5 bg-white/90">
+          <CardHeader>
+            <div className="flex flex-wrap items-center gap-2">
+              <StatusBadge label={event.status} tone={event.status === "PUBLISHED" ? "success" : event.status === "CANCELLED" ? "danger" : "warning"} />
+              <StatusBadge label={event.visibility} tone="muted" />
+              <StatusBadge label={event.category.name} tone="default" />
+            </div>
+            <CardTitle className="pt-3 font-heading text-2xl">
+              Edit event details
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <EventForm
+              action={updateEventAction}
+              categories={categories}
+              submitLabel="Save event changes"
+              loadingLabel="Saving changes..."
+              initialValues={{
+                eventId: event.id,
+                title: event.title,
+                slug: event.slug,
+                categoryId: event.categoryId,
+                description: event.description,
+                startDatetime: toDateTimeLocal(event.startDatetime),
+                endDatetime: toDateTimeLocal(event.endDatetime),
+                locationName: event.locationName,
+                locationAddress: event.locationAddress ?? "",
+                city: event.city,
+                imageUrl: event.imageUrl ?? "",
+                visibility: event.visibility,
+              }}
+            />
+          </CardContent>
+        </Card>
+
+        <div className="space-y-6">
+          <Card className="border border-black/5 bg-white/90">
+            <CardHeader>
+              <CardTitle className="font-heading text-xl">Lifecycle controls</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <div className="grid grid-cols-2 gap-3 text-sm">
+                <Metric label="Ticket types" value={String(event._count.ticketTypes)} />
+                <Metric label="Bookings" value={String(event._count.bookings)} />
+              </div>
+              <form action={publishEventAction}>
+                <input type="hidden" name="eventId" value={event.id} />
+                <Button className="w-full" type="submit">
+                  Publish event
+                </Button>
+              </form>
+              <form action={unpublishEventAction}>
+                <input type="hidden" name="eventId" value={event.id} />
+                <Button className="w-full" type="submit" variant="outline">
+                  Move back to draft
+                </Button>
+              </form>
+              <form action={cancelEventAction}>
+                <input type="hidden" name="eventId" value={event.id} />
+                <Button className="w-full" type="submit" variant="destructive">
+                  Cancel event
+                </Button>
+              </form>
+              <form action={deleteEventAction}>
+                <input type="hidden" name="eventId" value={event.id} />
+                <Button className="w-full" type="submit" variant="destructive">
+                  Delete event
+                </Button>
+              </form>
+            </CardContent>
+          </Card>
+          <Card className="border border-black/5 bg-white/90">
+            <CardHeader>
+              <CardTitle className="font-heading text-xl">Quick context</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3 text-sm text-muted-foreground">
+              <p>
+                Scheduled for {format(event.startDatetime, "dd MMM yyyy, HH:mm")} in {event.city}.
+              </p>
+              <p>
+                Organizer ownership protection is enforced at the query and action layers for this route.
+              </p>
+              <p>
+                Ticket type management lands next, so this page is already prepared to enforce publish prerequisites.
+              </p>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function Metric({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded-2xl border border-black/5 bg-slate-50 px-4 py-3">
+      <p className="text-xs font-semibold uppercase tracking-[0.28em] text-muted-foreground">
+        {label}
+      </p>
+      <p className="mt-2 font-heading text-lg font-semibold text-slate-950">
+        {value}
+      </p>
+    </div>
   );
 }
