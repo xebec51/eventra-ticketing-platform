@@ -1,8 +1,11 @@
+import { notFound } from "next/navigation";
 import { CheckCircle2, QrCode, ShieldCheck } from "lucide-react";
 
 import { MarketingShell } from "@/components/eventra/marketing-shell";
 import { StatusBadge } from "@/components/eventra/status-badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { formatDateTime } from "@/lib/formatters";
+import { prisma } from "@/lib/prisma";
 
 export default async function VerifyTicketPage({
   params,
@@ -10,6 +13,47 @@ export default async function VerifyTicketPage({
   params: Promise<{ ticketCode: string }>;
 }) {
   const { ticketCode } = await params;
+  const ticket = await prisma.ticket.findUnique({
+    where: { ticketCode: ticketCode.toUpperCase() },
+    include: {
+      event: {
+        select: {
+          title: true,
+          startDatetime: true,
+          locationName: true,
+          city: true,
+        },
+      },
+      user: {
+        select: { name: true },
+      },
+      booking: {
+        select: {
+          status: true,
+          bookingCode: true,
+        },
+      },
+      ticketType: {
+        select: { name: true },
+      },
+      checker: {
+        select: { name: true },
+      },
+    },
+  });
+
+  if (!ticket) {
+    notFound();
+  }
+
+  const statusTone =
+    ticket.status === "VALID"
+      ? "success"
+      : ticket.status === "USED"
+        ? "default"
+        : ticket.status === "EXPIRED"
+          ? "warning"
+          : "danger";
 
   return (
     <MarketingShell>
@@ -23,18 +67,70 @@ export default async function VerifyTicketPage({
               Ticket verification
             </h1>
             <p className="mt-3 max-w-2xl text-sm leading-7 text-white/80">
-              This public route will validate ticket code ownership, status, and check-in readiness after the ticket domain flow is connected.
+              Public verification confirms whether a ticket belongs to an
+              approved booking and whether it is still eligible for entry.
             </p>
           </div>
           <CardHeader>
             <CardTitle className="font-heading text-2xl">
-              Verification preview for {ticketCode}
+              Verification result for {ticket.ticketCode}
             </CardTitle>
           </CardHeader>
           <CardContent className="grid gap-4 md:grid-cols-3">
-            <VerificationBlock title="Status" badge={<StatusBadge label="VALID" tone="success" />} />
-            <VerificationBlock title="Ownership" badge={<StatusBadge label="Approved booking" tone="default" />} />
-            <VerificationBlock title="Check-in" badge={<StatusBadge label="Unused" tone="warning" />} />
+            <VerificationBlock
+              title="Status"
+              badge={<StatusBadge label={ticket.status} tone={statusTone} />}
+            />
+            <VerificationBlock
+              title="Booking"
+              badge={<StatusBadge label={ticket.booking.status} tone="default" />}
+            />
+            <VerificationBlock
+              title="Check-in"
+              badge={
+                <StatusBadge
+                  label={ticket.checkedInAt ? "Already used" : "Ready for entry"}
+                  tone={ticket.checkedInAt ? "default" : "success"}
+                />
+              }
+            />
+            <div className="rounded-3xl border border-black/5 bg-slate-50 p-5 md:col-span-3">
+              <div className="grid gap-3 md:grid-cols-2">
+                <VerificationDetail
+                  label="Attendee"
+                  value={ticket.user.name}
+                />
+                <VerificationDetail
+                  label="Ticket type"
+                  value={ticket.ticketType.name}
+                />
+                <VerificationDetail label="Event" value={ticket.event.title} />
+                <VerificationDetail
+                  label="Schedule"
+                  value={formatDateTime(ticket.event.startDatetime)}
+                />
+                <VerificationDetail
+                  label="Venue"
+                  value={`${ticket.event.locationName}, ${ticket.event.city}`}
+                />
+                <VerificationDetail
+                  label="Booking code"
+                  value={ticket.booking.bookingCode}
+                />
+                <VerificationDetail
+                  label="Checked in by"
+                  value={ticket.checker?.name ?? "Not checked in yet"}
+                />
+                <VerificationDetail
+                  label="Checked in at"
+                  value={
+                    ticket.checkedInAt
+                      ? formatDateTime(ticket.checkedInAt)
+                      : "Not checked in yet"
+                  }
+                />
+              </div>
+            </div>
             <div className="rounded-3xl border border-black/5 bg-slate-50 p-5 md:col-span-3">
               <div className="flex items-start gap-4">
                 <div className="flex size-11 items-center justify-center rounded-2xl bg-emerald-600 text-white">
@@ -45,7 +141,10 @@ export default async function VerifyTicketPage({
                     Frontend-generated QR strategy
                   </p>
                   <p className="mt-2 text-sm leading-6 text-muted-foreground">
-                    Eventra stores only `ticketCode` and `qrPayload`. The QR image itself is rendered on the frontend, keeping the database lean while still enabling public verification and organizer check-in.
+                    Eventra stores only `ticketCode` and `qrPayload`. The QR
+                    image itself is rendered on the frontend, keeping the
+                    database lean while still enabling public verification and
+                    organizer check-in.
                   </p>
                 </div>
               </div>
@@ -60,7 +159,9 @@ export default async function VerifyTicketPage({
                     Duplicate protection
                   </p>
                   <p className="mt-2 text-sm leading-6 text-muted-foreground">
-                    Final check-in flow will reject any ticket that is already marked `USED`, protecting attendance integrity at the ticket level instead of the booking level.
+                    Check-in rejects any ticket already marked `USED`,
+                    protecting attendance integrity at the ticket level instead
+                    of the booking level.
                   </p>
                 </div>
               </div>
@@ -69,6 +170,23 @@ export default async function VerifyTicketPage({
         </Card>
       </section>
     </MarketingShell>
+  );
+}
+
+function VerificationDetail({
+  label,
+  value,
+}: {
+  label: string;
+  value: string;
+}) {
+  return (
+    <div className="rounded-2xl border border-black/5 bg-white px-4 py-3">
+      <p className="text-xs font-semibold uppercase tracking-[0.24em] text-muted-foreground">
+        {label}
+      </p>
+      <p className="mt-2 text-sm font-medium text-slate-950">{value}</p>
+    </div>
   );
 }
 
