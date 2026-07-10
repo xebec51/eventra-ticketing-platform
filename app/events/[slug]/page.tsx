@@ -3,14 +3,16 @@ import { notFound } from "next/navigation";
 import { CalendarDays, Clock3, MapPin, Star, Ticket } from "lucide-react";
 
 import { BookingStatusBadge } from "@/components/eventra/booking-status-badge";
+import { FavoriteEventButton } from "@/components/eventra/favorite-event-button";
 import { MarketingShell } from "@/components/eventra/marketing-shell";
 import { StatusBadge } from "@/components/eventra/status-badge";
 import { buttonVariants } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { featuredEvents } from "@/lib/mock-data";
+import { getSessionUser } from "@/lib/auth";
+import { prisma } from "@/lib/prisma";
 import { cn } from "@/lib/utils";
 
-function formatEventDateRange(start: string, end: string) {
+function formatEventDateRange(start: Date, end: Date) {
   const formatter = new Intl.DateTimeFormat("en-SG", {
     day: "2-digit",
     month: "short",
@@ -19,7 +21,7 @@ function formatEventDateRange(start: string, end: string) {
     minute: "2-digit",
   });
 
-  return `${formatter.format(new Date(start))} - ${formatter.format(new Date(end))}`;
+  return `${formatter.format(start)} - ${formatter.format(end)}`;
 }
 
 export default async function EventDetailPage({
@@ -28,61 +30,164 @@ export default async function EventDetailPage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  const event = featuredEvents.find((entry) => entry.slug === slug);
+  const [user, event] = await Promise.all([
+    getSessionUser(),
+    prisma.event.findFirst({
+      where: {
+        slug,
+        status: "PUBLISHED",
+        visibility: "PUBLIC",
+      },
+      include: {
+        category: { select: { name: true } },
+        organizerProfile: { select: { organizationName: true } },
+        ticketTypes: {
+          where: { isActive: true },
+          orderBy: [{ price: "asc" }, { createdAt: "asc" }],
+        },
+        favoriteEvents: {
+          select: { userId: true },
+        },
+        eventReviews: {
+          where: { isVisible: true },
+          include: {
+            user: { select: { name: true } },
+          },
+          orderBy: { createdAt: "desc" },
+        },
+        _count: {
+          select: {
+            favoriteEvents: true,
+            bookings: true,
+          },
+        },
+      },
+    }),
+  ]);
 
   if (!event) {
     notFound();
   }
 
+  const reservationSums = await prisma.bookingItem.groupBy({
+    by: ["ticketTypeId"],
+    _sum: { quantity: true },
+    where: {
+      ticketType: { eventId: event.id },
+      booking: {
+        status: {
+          in: ["PENDING", "APPROVED"],
+        },
+      },
+    },
+  });
+
+  const reservedMap = new Map(
+    reservationSums.map((entry) => [entry.ticketTypeId, entry._sum.quantity ?? 0])
+  );
+  const isFavorite = !!user
+    ? event.favoriteEvents.some((favorite) => favorite.userId === user.id)
+    : false;
+  const averageRating = event.eventReviews.length
+    ? event.eventReviews.reduce((sum, review) => sum + review.rating, 0) /
+      event.eventReviews.length
+    : 0;
+
   return (
     <MarketingShell>
       <section className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
-        <div className={cn("rounded-[2rem] bg-gradient-to-br p-8 text-white lg:p-10", event.imageAccent)}>
+        <div
+          className={cn(
+            "rounded-[2rem] bg-gradient-to-br p-8 text-white lg:p-10",
+            "from-[#231942] via-[#d46d42] to-[#ffcb69]"
+          )}
+        >
           <div className="flex flex-wrap items-center gap-3">
-            <StatusBadge label={event.category} tone="default" />
+            <StatusBadge label={event.category.name} tone="default" />
             <StatusBadge label={event.city} tone="warning" />
           </div>
           <h1 className="mt-6 max-w-4xl font-heading text-4xl font-semibold tracking-tight sm:text-5xl">
             {event.title}
           </h1>
           <p className="mt-4 max-w-2xl text-sm leading-7 text-white/80 sm:text-base">
-            {event.excerpt}
+            {event.description}
           </p>
           <div className="mt-8 grid gap-4 text-sm sm:grid-cols-2 xl:grid-cols-4">
-            <InfoPill icon={<CalendarDays className="size-4" />} label={formatEventDateRange(event.startDate, event.endDate)} />
+            <InfoPill
+              icon={<CalendarDays className="size-4" />}
+              label={formatEventDateRange(event.startDatetime, event.endDatetime)}
+            />
             <InfoPill icon={<MapPin className="size-4" />} label={event.locationName} />
-            <InfoPill icon={<Star className="size-4" />} label={`${event.rating.toFixed(1)} average rating`} />
-            <InfoPill icon={<Ticket className="size-4" />} label={event.priceLabel} />
+            <InfoPill
+              icon={<Star className="size-4" />}
+              label={`${averageRating.toFixed(1)} average rating`}
+            />
+            <InfoPill
+              icon={<Ticket className="size-4" />}
+              label={
+                event.ticketTypes.length
+                  ? `From $${event.ticketTypes[0].price.toString()}`
+                  : "Free"
+              }
+            />
           </div>
         </div>
 
         <div className="mt-8 grid gap-6 xl:grid-cols-[1.15fr_0.85fr]">
           <Card className="border border-black/5 bg-white/90">
             <CardHeader>
-              <CardTitle className="font-heading text-2xl">Event overview</CardTitle>
+              <CardTitle className="font-heading text-2xl">
+                Event overview
+              </CardTitle>
             </CardHeader>
             <CardContent className="space-y-6 text-sm leading-7 text-muted-foreground">
               <p>
-                This route is ready for the upcoming database-driven discovery phase. It already mirrors the final Eventra detail structure:
-                public summary, ticket options, organizer info, attendee-facing FAQs, reviews, and booking CTA placement.
+                Hosted by {event.organizerProfile.organizationName}, this public
+                listing exposes live ticket inventory, visible attendee feedback,
+                and the approval model before checkout begins.
               </p>
               <div className="grid gap-4 sm:grid-cols-2">
                 <FeaturePanel
                   title="Ticket types"
-                  description="Early bird, regular, and free/community-access tiers with quota and sales period support."
+                  description="Organizer-configured tiers support free, paid, and sales-window based inventory."
                 />
                 <FeaturePanel
                   title="Manual approval model"
-                  description="Paid bookings stay pending until proof is reviewed; free bookings can auto-approve."
+                  description="Paid bookings stay pending until proof is reviewed, while cash-on-venue still requires approval before ticket issuance."
                 />
                 <FeaturePanel
                   title="Review eligibility"
-                  description="Attendees can only review after the event has ended and at least one ticket is used."
+                  description="Attendees can only review after the event ends and a ticket for that event has been checked in as used."
                 />
                 <FeaturePanel
                   title="QR verification"
-                  description="Frontend-generated QR output points to a public verify route backed by ticket code validation."
+                  description="Frontend-generated QR output points to the public verify route backed by ticket code validation."
                 />
+              </div>
+              <div className="space-y-3">
+                <h3 className="font-heading text-xl font-semibold text-slate-950">
+                  Attendee reviews
+                </h3>
+                {event.eventReviews.length > 0 ? (
+                  event.eventReviews.slice(0, 3).map((review) => (
+                    <div
+                      key={review.id}
+                      className="rounded-3xl border border-black/5 bg-slate-50 p-4"
+                    >
+                      <div className="flex items-center justify-between gap-4">
+                        <p className="font-semibold text-slate-900">
+                          {review.user.name}
+                        </p>
+                        <StatusBadge label={`${review.rating}/5`} tone="warning" />
+                      </div>
+                      <p className="mt-2 text-sm leading-6 text-muted-foreground">
+                        {review.comment || "No written comment provided."}
+                      </p>
+                    </div>
+                  ))
+                ) : (
+                  <p>No public reviews yet.</p>
+                )}
               </div>
             </CardContent>
           </Card>
@@ -90,34 +195,83 @@ export default async function EventDetailPage({
           <div className="space-y-6">
             <Card className="border border-black/5 bg-white/90">
               <CardHeader>
-                <CardTitle className="font-heading text-2xl">Booking snapshot</CardTitle>
+                <CardTitle className="font-heading text-2xl">
+                  Booking snapshot
+                </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
+                <div className="flex items-center justify-between gap-3">
+                  <FavoriteEventButton
+                    eventId={event.id}
+                    redirectPath={`/events/${event.slug}`}
+                    isFavorite={isFavorite}
+                    canFavorite={!!user}
+                    count={event._count.favoriteEvents}
+                  />
+                  <StatusBadge
+                    label={`${event._count.bookings} bookings`}
+                    tone="default"
+                  />
+                </div>
                 <div className="rounded-3xl border border-black/5 bg-slate-50 p-4">
-                  <p className="text-sm font-semibold text-slate-900">Primary CTA</p>
+                  <p className="text-sm font-semibold text-slate-900">
+                    Primary CTA
+                  </p>
                   <p className="mt-2 text-sm leading-6 text-muted-foreground">
-                    Guests will be redirected to login before protected actions such as booking and favoriting.
+                    Guests are redirected to login before protected actions such
+                    as booking and favoriting.
                   </p>
                 </div>
                 <div className="grid gap-3">
-                  <TicketTier name="Early Bird" price="$12.00" note="Max 2 per booking" />
-                  <TicketTier name="Regular Pass" price="$24.00" note="Manual payment supported" />
-                  <TicketTier name="Community Access" price="Free" note="Auto-approved when quota remains" />
+                  {event.ticketTypes.map((ticketType) => {
+                    const reserved = reservedMap.get(ticketType.id) ?? 0;
+                    const available = Math.max(ticketType.quota - reserved, 0);
+
+                    return (
+                      <TicketTier
+                        key={ticketType.id}
+                        name={ticketType.name}
+                        price={
+                          Number(ticketType.price.toString()) > 0
+                            ? `$${ticketType.price.toString()}`
+                            : "Free"
+                        }
+                        note={`${available} available | max ${ticketType.maxPerBooking} per booking`}
+                      />
+                    );
+                  })}
                 </div>
-                <Link href="/login" className={cn(buttonVariants({ size: "lg" }), "w-full")}>
-                  Sign in to book
+                <Link
+                  href={user ? "/dashboard/user/bookings" : "/login"}
+                  className={cn(buttonVariants({ size: "lg" }), "w-full")}
+                >
+                  {user ? "Continue to booking flow" : "Sign in to book"}
                 </Link>
               </CardContent>
             </Card>
             <Card className="border border-black/5 bg-white/90">
               <CardHeader>
-                <CardTitle className="font-heading text-xl">Expected flows</CardTitle>
+                <CardTitle className="font-heading text-xl">
+                  Expected flows
+                </CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
-                <FlowRow label="Payment review" badge={<BookingStatusBadge status="PENDING" />} />
-                <FlowRow label="Approval and ticket issuance" badge={<BookingStatusBadge status="APPROVED" />} />
-                <FlowRow label="Expiry handling" badge={<StatusBadge label="24h deadline" tone="warning" />} />
-                <FlowRow label="Check-in status" badge={<StatusBadge label="Ticket-level only" tone="default" />} />
+                <FlowRow
+                  label="Payment review"
+                  badge={<BookingStatusBadge status="PENDING" />}
+                />
+                <FlowRow
+                  label="Approval and ticket issuance"
+                  badge={<BookingStatusBadge status="APPROVED" />}
+                />
+                <FlowRow
+                  label="Expiry handling"
+                  badge={<StatusBadge label="24h deadline" tone="warning" />}
+                />
+                <FlowRow
+                  label="Check-in status"
+                  badge={<StatusBadge label="Ticket-level only" tone="default" />}
+                />
               </CardContent>
             </Card>
           </div>
@@ -152,7 +306,9 @@ function FeaturePanel({
   return (
     <div className="rounded-3xl border border-black/5 bg-slate-50 p-4">
       <p className="font-heading text-lg font-semibold text-slate-900">{title}</p>
-      <p className="mt-2 text-sm leading-6 text-muted-foreground">{description}</p>
+      <p className="mt-2 text-sm leading-6 text-muted-foreground">
+        {description}
+      </p>
     </div>
   );
 }

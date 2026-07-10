@@ -8,10 +8,17 @@ import { StatCard } from "@/components/eventra/stat-card";
 import { StatusBadge } from "@/components/eventra/status-badge";
 import { buttonVariants } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { eventCategories, featuredEvents } from "@/lib/mock-data";
+import { eventCategories } from "@/lib/mock-data";
+import { getPublicEvents } from "@/lib/public-events";
 import { cn } from "@/lib/utils";
 
-export default function Home() {
+export default async function Home() {
+  const [upcomingEvents, popularEvents] = await Promise.all([
+    getPublicEvents({ sort: "date" }),
+    getPublicEvents({ sort: "popularity" }),
+  ]);
+  const featuredEvents = popularEvents.slice(0, 4);
+
   return (
     <MarketingShell>
       <section className="mx-auto grid max-w-7xl gap-12 px-4 pb-20 pt-16 sm:px-6 lg:grid-cols-[1.1fr_0.9fr] lg:px-8 lg:pt-20">
@@ -168,6 +175,71 @@ export default function Home() {
         </div>
       </section>
 
+      <section className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+        <div className="grid gap-6 xl:grid-cols-2">
+          <Card className="border border-black/5 bg-white/90">
+            <CardContent className="space-y-5 pt-6">
+              <div className="flex items-center justify-between gap-4">
+                <div>
+                  <p className="text-xs font-semibold uppercase tracking-[0.28em] text-[#d46d42]">
+                    Upcoming
+                  </p>
+                  <h3 className="mt-2 font-heading text-2xl font-semibold text-slate-950">
+                    Soonest public events
+                  </h3>
+                </div>
+                <Link
+                  href="/events?sort=date"
+                  className={cn(buttonVariants({ variant: "outline", size: "sm" }))}
+                >
+                  View all
+                </Link>
+              </div>
+              <div className="space-y-3">
+                {upcomingEvents.slice(0, 3).map((event) => (
+                  <CompactEventRow
+                    key={event.id}
+                    href={`/events/${event.slug}`}
+                    title={event.title}
+                    meta={`${event.city} | ${event.priceLabel}`}
+                  />
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+          <Card className="border border-black/5 bg-white/90">
+            <CardContent className="space-y-5 pt-6">
+              <div className="flex items-center justify-between gap-4">
+                <div>
+                  <p className="text-xs font-semibold uppercase tracking-[0.28em] text-[#d46d42]">
+                    Popular
+                  </p>
+                  <h3 className="mt-2 font-heading text-2xl font-semibold text-slate-950">
+                    Highest demand right now
+                  </h3>
+                </div>
+                <Link
+                  href="/events?sort=popularity"
+                  className={cn(buttonVariants({ variant: "outline", size: "sm" }))}
+                >
+                  Explore
+                </Link>
+              </div>
+              <div className="space-y-3">
+                {popularEvents.slice(0, 3).map((event) => (
+                  <CompactEventRow
+                    key={event.id}
+                    href={`/events/${event.slug}`}
+                    title={event.title}
+                    meta={`${event.favorites} saves | ${event.attendees} bookings`}
+                  />
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </section>
+
       <section className="mx-auto max-w-7xl px-4 pb-20 pt-8 sm:px-6 lg:px-8">
         <Card className="overflow-hidden border border-white/70 bg-slate-950 text-white shadow-[0_30px_120px_rgba(15,23,42,0.28)]">
           <CardContent className="grid gap-10 p-8 lg:grid-cols-[1fr_0.9fr] lg:p-10">
@@ -177,7 +249,7 @@ export default function Home() {
                 Professional enough for organizers, simple enough for attendees.
               </h2>
               <p className="max-w-2xl text-sm leading-7 text-white/75 sm:text-base">
-                Eventra’s dashboard system is purpose-built for role-based workflows: admin governance,
+                Eventra&apos;s dashboard system is purpose-built for role-based workflows: admin governance,
                 organizer execution, and user self-service, each with a clear visual hierarchy and operational focus.
               </p>
             </div>
@@ -227,5 +299,28 @@ function MiniFeature({
       <h3 className="mt-4 font-heading text-lg font-semibold">{title}</h3>
       <p className="mt-2 text-sm leading-6 text-white/70">{description}</p>
     </div>
+  );
+}
+
+function CompactEventRow({
+  href,
+  title,
+  meta,
+}: {
+  href: string;
+  title: string;
+  meta: string;
+}) {
+  return (
+    <Link
+      href={href}
+      className="flex items-center justify-between rounded-3xl border border-black/5 bg-slate-50 px-4 py-4 transition hover:bg-slate-100"
+    >
+      <div>
+        <p className="font-semibold text-slate-950">{title}</p>
+        <p className="mt-1 text-sm text-muted-foreground">{meta}</p>
+      </div>
+      <ArrowRight className="size-4 text-[#d46d42]" />
+    </Link>
   );
 }
