@@ -1,0 +1,115 @@
+"use client";
+
+import { useActionState } from "react";
+
+import {
+  registerOrganizerAction,
+  type AuthFormState,
+} from "@/app/actions/auth";
+import { AuthSubmitButton } from "@/components/eventra/auth-submit-button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+
+const initialState: AuthFormState = {};
+
+function FieldError({
+  message,
+}: {
+  message?: string[];
+}) {
+  if (!message?.length) {
+    return null;
+  }
+
+  return <p className="text-sm text-rose-600">{message[0]}</p>;
+}
+
+export function OrganizerRegisterForm() {
+  const [state, action] = useActionState(registerOrganizerAction, initialState);
+
+  return (
+    <form action={action} className="grid gap-5 sm:grid-cols-2">
+      {state.message ? (
+        <div className="sm:col-span-2 rounded-3xl border border-rose-100 bg-rose-50 p-4 text-sm text-rose-700">
+          {state.message}
+        </div>
+      ) : null}
+      <div className="space-y-2 sm:col-span-2">
+        <Label htmlFor="organizationName">Organization name</Label>
+        <Input
+          id="organizationName"
+          name="organizationName"
+          placeholder="Design Society Chapter"
+          className="h-11 border-black/10"
+        />
+        <FieldError message={state.errors?.organizationName} />
+      </div>
+      <div className="space-y-2">
+        <Label htmlFor="name">Account owner name</Label>
+        <Input id="name" name="name" placeholder="Maya Chen" className="h-11 border-black/10" />
+        <FieldError message={state.errors?.name} />
+      </div>
+      <div className="space-y-2">
+        <Label htmlFor="contactPerson">Contact person</Label>
+        <Input
+          id="contactPerson"
+          name="contactPerson"
+          placeholder="Maya Chen"
+          className="h-11 border-black/10"
+        />
+        <FieldError message={state.errors?.contactPerson} />
+      </div>
+      <div className="space-y-2">
+        <Label htmlFor="email">Account email</Label>
+        <Input id="email" name="email" type="email" placeholder="team@organization.id" className="h-11 border-black/10" />
+        <FieldError message={state.errors?.email} />
+      </div>
+      <div className="space-y-2">
+        <Label htmlFor="phone">Phone</Label>
+        <Input id="phone" name="phone" placeholder="+62 812 0000 0000" className="h-11 border-black/10" />
+        <FieldError message={state.errors?.phone} />
+      </div>
+      <div className="space-y-2">
+        <Label htmlFor="password">Password</Label>
+        <Input id="password" name="password" type="password" placeholder="Create a strong password" className="h-11 border-black/10" />
+        <FieldError message={state.errors?.password} />
+      </div>
+      <div className="space-y-2">
+        <Label htmlFor="confirmPassword">Confirm password</Label>
+        <Input id="confirmPassword" name="confirmPassword" type="password" placeholder="Repeat password" className="h-11 border-black/10" />
+        <FieldError message={state.errors?.confirmPassword} />
+      </div>
+      <div className="space-y-2 sm:col-span-2">
+        <Label htmlFor="websiteUrl">Website</Label>
+        <Input id="websiteUrl" name="websiteUrl" placeholder="https://organization.id" className="h-11 border-black/10" />
+        <FieldError message={state.errors?.websiteUrl} />
+      </div>
+      <div className="space-y-2 sm:col-span-2">
+        <Label htmlFor="description">Description</Label>
+        <Textarea
+          id="description"
+          name="description"
+          placeholder="Tell Eventra about your organization and the events you run."
+          className="min-h-32 border-black/10"
+        />
+        <FieldError message={state.errors?.description} />
+      </div>
+      <div className="space-y-2 sm:col-span-2">
+        <Label htmlFor="address">Address</Label>
+        <Textarea
+          id="address"
+          name="address"
+          placeholder="Campus building, office, or organizer address"
+          className="min-h-24 border-black/10"
+        />
+        <FieldError message={state.errors?.address} />
+      </div>
+      <div className="sm:col-span-2">
+        <AuthSubmitButton loadingLabel="Submitting application...">
+          Submit organizer application
+        </AuthSubmitButton>
+      </div>
+    </form>
+  );
+}

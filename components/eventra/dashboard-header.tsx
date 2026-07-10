@@ -3,10 +3,11 @@
 import Link from "next/link";
 import { Bell, Search, Sparkles } from "lucide-react";
 
+import { DashboardUserMenu } from "@/components/eventra/dashboard-user-menu";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
-import type { UserRole } from "@/lib/types";
+import type { UserRole, UserStatus } from "@/lib/types";
 
 const roleCopy: Record<UserRole, string> = {
   ADMIN: "Platform-wide governance, analytics, and moderation controls.",
@@ -17,9 +18,15 @@ const roleCopy: Record<UserRole, string> = {
 export function DashboardHeader({
   role,
   title,
+  name,
+  email,
+  status,
 }: {
   role: UserRole;
   title: string;
+  name: string;
+  email: string;
+  status: UserStatus;
 }) {
   return (
     <div className="flex flex-col gap-5 rounded-[2rem] border border-white/70 bg-white/85 p-5 shadow-[0_24px_70px_rgba(15,23,42,0.08)] backdrop-blur-xl lg:flex-row lg:items-center lg:justify-between">
@@ -50,6 +57,12 @@ export function DashboardHeader({
         >
           View catalog
         </Link>
+        <DashboardUserMenu
+          name={name}
+          email={email}
+          role={role}
+          status={status}
+        />
       </div>
     </div>
   );

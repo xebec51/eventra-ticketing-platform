@@ -1,11 +1,14 @@
 import type { ReactNode } from "react";
 
 import { DashboardRouteShell } from "@/components/eventra/dashboard-route-shell";
+import { requireDashboardAccess } from "@/lib/auth";
 
-export default function DashboardLayout({
+export default async function DashboardLayout({
   children,
 }: {
   children: ReactNode;
 }) {
-  return <DashboardRouteShell>{children}</DashboardRouteShell>;
+  const user = await requireDashboardAccess();
+
+  return <DashboardRouteShell user={user}>{children}</DashboardRouteShell>;
 }

@@ -1,20 +1,12 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { usePathname, useSelectedLayoutSegments } from "next/navigation";
+import { usePathname } from "next/navigation";
 
 import { AppShell } from "@/components/eventra/app-shell";
 import { DashboardHeader } from "@/components/eventra/dashboard-header";
 import { DashboardSidebar } from "@/components/eventra/dashboard-sidebar";
-import type { UserRole } from "@/lib/types";
-
-function inferRole(segments: string[]): UserRole {
-  const firstSegment = segments[0];
-
-  if (firstSegment === "admin") return "ADMIN";
-  if (firstSegment === "organizer") return "ORGANIZER";
-  return "USER";
-}
+import type { UserRole, UserStatus } from "@/lib/types";
 
 function inferTitle(pathname: string) {
   return pathname
@@ -31,18 +23,31 @@ function inferTitle(pathname: string) {
 
 export function DashboardRouteShell({
   children,
+  user,
 }: {
   children: ReactNode;
+  user: {
+    name?: string | null;
+    email?: string | null;
+    role: UserRole;
+    status: UserStatus;
+  };
 }) {
-  const segments = useSelectedLayoutSegments();
   const pathname = usePathname();
-  const role = inferRole(segments);
   const title = inferTitle(pathname) || "Dashboard";
 
   return (
     <AppShell
-      sidebar={<DashboardSidebar role={role} pathname={pathname} />}
-      header={<DashboardHeader role={role} title={title} />}
+      sidebar={<DashboardSidebar role={user.role} pathname={pathname} />}
+      header={
+        <DashboardHeader
+          role={user.role}
+          title={title}
+          name={user.name || "Eventra User"}
+          email={user.email || "No email"}
+          status={user.status}
+        />
+      }
     >
       {children}
     </AppShell>

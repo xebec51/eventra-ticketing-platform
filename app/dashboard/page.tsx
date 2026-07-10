@@ -1,5 +1,7 @@
-import { DashboardWorkspaceSelector } from "@/components/eventra/dashboard-templates";
+import { redirectDashboardIndex } from "@/lib/auth";
 
-export default function DashboardPage() {
-  return <DashboardWorkspaceSelector />;
+export default async function DashboardPage() {
+  await redirectDashboardIndex();
+
+  return null;
 }
