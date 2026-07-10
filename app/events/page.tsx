@@ -23,15 +23,21 @@ export default async function EventsPage({
     city: city === "all" ? undefined : city,
     sort,
   });
-  const cityOptions = await prisma.event.findMany({
-    where: {
-      status: "PUBLISHED",
-      visibility: "PUBLIC",
-    },
-    distinct: ["city"],
-    select: { city: true },
-    orderBy: { city: "asc" },
-  });
+  const [cityOptions, categories] = await Promise.all([
+    prisma.event.findMany({
+      where: {
+        status: "PUBLISHED",
+        visibility: "PUBLIC",
+      },
+      distinct: ["city"],
+      select: { city: true },
+      orderBy: { city: "asc" },
+    }),
+    prisma.eventCategory.findMany({
+      select: { id: true, slug: true, name: true },
+      orderBy: { name: "asc" },
+    }),
+  ]);
 
   return (
     <MarketingShell>
@@ -47,6 +53,7 @@ export default async function EventsPage({
             category={category}
             city={city}
             sort={sort}
+            categories={categories}
             cities={cityOptions.map((item) => item.city)}
           />
         </div>

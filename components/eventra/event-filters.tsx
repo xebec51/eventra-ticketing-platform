@@ -1,6 +1,5 @@
 import { Search } from "lucide-react";
 
-import { eventCategories } from "@/lib/mock-data";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
@@ -10,12 +9,14 @@ export function EventFilters({
   category,
   city,
   sort,
+  categories,
   cities,
 }: {
   query?: string;
   category?: string;
   city?: string;
   sort?: string;
+  categories: { id: string; slug: string; name: string }[];
   cities: string[];
 }) {
   return (
@@ -40,11 +41,11 @@ export function EventFilters({
           name="category"
         >
           <option value="all">All categories</option>
-            {eventCategories.map((category) => (
-              <option key={category.id} value={category.slug}>
-                {category.name}
-              </option>
-            ))}
+          {categories.map((categoryOption) => (
+            <option key={categoryOption.id} value={categoryOption.slug}>
+              {categoryOption.name}
+            </option>
+          ))}
         </select>
         <select
           className="h-11 rounded-lg border border-black/10 bg-white px-3 text-sm"

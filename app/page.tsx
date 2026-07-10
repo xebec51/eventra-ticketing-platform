@@ -8,14 +8,22 @@ import { StatCard } from "@/components/eventra/stat-card";
 import { StatusBadge } from "@/components/eventra/status-badge";
 import { buttonVariants } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { eventCategories } from "@/lib/mock-data";
+import { prisma } from "@/lib/prisma";
 import { getPublicEvents } from "@/lib/public-events";
 import { cn } from "@/lib/utils";
 
 export default async function Home() {
-  const [upcomingEvents, popularEvents] = await Promise.all([
+  const [upcomingEvents, popularEvents, categories] = await Promise.all([
     getPublicEvents({ sort: "date" }),
     getPublicEvents({ sort: "popularity" }),
+    prisma.eventCategory.findMany({
+      include: {
+        _count: {
+          select: { events: true },
+        },
+      },
+      orderBy: { name: "asc" },
+    }),
   ]);
   const featuredEvents = popularEvents.slice(0, 4);
 
@@ -133,13 +141,13 @@ export default async function Home() {
           description="Eventra fits fast-moving student programs, independent communities, and public-facing small events that need approvals, limited quotas, and dependable check-in."
         />
         <div className="mt-8 grid gap-4 lg:grid-cols-4">
-          {eventCategories.map((category) => (
+          {categories.map((category) => (
             <Card
               key={category.id}
               className="border border-black/5 bg-white/85 shadow-[0_18px_55px_rgba(15,23,42,0.05)]"
             >
               <CardContent className="space-y-4 pt-6">
-                <StatusBadge label={`${category.eventCount} events`} tone="default" />
+                <StatusBadge label={`${category._count.events} events`} tone="default" />
                 <div>
                   <h3 className="font-heading text-xl font-semibold text-slate-950">
                     {category.name}
