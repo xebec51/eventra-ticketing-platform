@@ -13,6 +13,8 @@ import { formatCurrency } from "@/lib/formatters";
 import { prisma } from "@/lib/prisma";
 import { cn } from "@/lib/utils";
 
+const ADMIN_EVENT_LIMIT = 75;
+
 export default async function AdminEventsPage({
   searchParams,
 }: {
@@ -20,6 +22,7 @@ export default async function AdminEventsPage({
 }) {
   const { error } = await searchParams;
   const events = await prisma.event.findMany({
+    take: ADMIN_EVENT_LIMIT,
     include: {
       category: { select: { name: true } },
       organizerProfile: { select: { organizationName: true } },

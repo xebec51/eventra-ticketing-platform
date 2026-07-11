@@ -69,11 +69,15 @@ async function getScopedOperatorBooking(bookingId: string) {
     select: { id: true },
   });
 
+  if (!organizerProfile) {
+    throw new Error("Organizer profile not found.");
+  }
+
   const booking = await prisma.booking.findFirst({
     where: {
       id: bookingId,
       event: {
-        organizerProfileId: organizerProfile?.id,
+        organizerProfileId: organizerProfile.id,
       },
     },
     include: {

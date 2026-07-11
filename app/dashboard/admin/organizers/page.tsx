@@ -10,9 +10,12 @@ import { requireRole } from "@/lib/auth";
 import { formatDateTime } from "@/lib/formatters";
 import { prisma } from "@/lib/prisma";
 
+const ORGANIZER_TABLE_LIMIT = 75;
+
 export default async function AdminOrganizersPage() {
   await requireRole("ADMIN");
   const organizers = await prisma.organizerProfile.findMany({
+    take: ORGANIZER_TABLE_LIMIT,
     include: {
       user: {
         select: {

@@ -47,6 +47,10 @@ export const authOptions: NextAuthOptions = {
           return null;
         }
 
+        if (user.status === UserStatus.INACTIVE) {
+          return null;
+        }
+
         const isPasswordValid = await compare(parsed.data.password, user.password);
 
         if (!isPasswordValid) {

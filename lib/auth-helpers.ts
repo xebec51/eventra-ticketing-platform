@@ -31,6 +31,10 @@ export function canAccessRolePath(
   pathname: string,
   status: SessionStatus
 ) {
+  if (status !== UserStatus.ACTIVE) {
+    return false;
+  }
+
   if (pathname.startsWith("/dashboard/admin")) {
     return role === UserRole.ADMIN;
   }
