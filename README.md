@@ -456,6 +456,18 @@ Examples:
 
 ---
 
+## Security and Concurrency Notes
+
+- dashboard routes are protected by the Next.js proxy, while sensitive Server Actions repeat authentication, role, and organizer ownership checks on the server
+- booking creation uses serializable transactions and row locks on ticket types before quota is calculated
+- booking approval and ticket generation lock the booking row, issue only missing tickets, and conservatively retry Prisma `P2034` transaction conflicts
+- ticket check-in uses a conditional update that succeeds only while the ticket status is `VALID`, preventing two concurrent check-ins from both succeeding
+- payment processing actions use conditional updates so an already processed booking cannot be approved or rejected a second time
+
+These guards are application-level database workflows. The project does not currently add a per-booking ticket sequence constraint or run background reconciliation jobs.
+
+---
+
 ## Known Limitations
 
 - payment proof is URL-based and does not yet include a real upload pipeline
