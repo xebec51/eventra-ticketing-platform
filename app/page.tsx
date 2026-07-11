@@ -21,14 +21,14 @@ export default async function Home() {
     <MarketingShell>
       <section className="mx-auto grid max-w-7xl items-center gap-12 px-4 py-16 sm:px-6 lg:grid-cols-[1.05fr_0.75fr] lg:px-8 lg:py-24">
         <div className="max-w-3xl space-y-7">
-          <p className="text-sm font-semibold text-amber-700">
+          <p className="text-sm font-semibold text-primary">
             {t("marketing.heroBadge")}
           </p>
           <div className="space-y-5">
-            <h1 className="font-heading text-5xl font-semibold leading-[1.04] tracking-tight text-slate-950 sm:text-6xl">
+            <h1 className="font-heading text-5xl font-semibold leading-[1.04] tracking-tight text-foreground sm:text-6xl">
               {t("marketing.heroTitle")}
             </h1>
-            <p className="max-w-2xl text-lg leading-8 text-slate-600">
+            <p className="max-w-2xl text-lg leading-8 text-muted-foreground">
               {t("marketing.heroDescription")}
             </p>
           </div>
@@ -46,16 +46,16 @@ export default async function Home() {
           </div>
         </div>
 
-        <Card className="border-slate-200 bg-slate-950 text-white shadow-none">
+        <Card className="border-white/10 bg-foreground text-white shadow-none">
           <CardContent className="space-y-6 p-7">
             <div>
-              <p className="text-sm font-medium text-amber-300">
+              <p className="text-sm font-medium text-brand-amber">
                 {t("marketing.platformSnapshot")}
               </p>
               <h2 className="mt-3 font-heading text-2xl font-semibold">
                 {t("marketing.approvalsTitle")}
               </h2>
-              <p className="mt-3 text-sm leading-6 text-slate-300">
+              <p className="mt-3 text-sm leading-6 text-white/68">
                 {t("marketing.approvalsFlowDescription")}
               </p>
             </div>
@@ -80,7 +80,7 @@ export default async function Home() {
         </Card>
       </section>
 
-      <section className="border-y border-slate-200 bg-white">
+      <section className="border-y border-border bg-card">
         <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
           <SectionHeading
             eyebrow={t("marketing.featuredListings")}
@@ -105,12 +105,12 @@ export default async function Home() {
           eyebrow={t("marketing.upcoming")}
           title={t("marketing.upcomingTitle")}
         />
-        <div className="mt-6 divide-y divide-slate-200 border-y border-slate-200">
+        <div className="mt-6 divide-y divide-border border-y border-border">
           {upcomingEvents.slice(0, 4).map((event) => (
             <Link
               key={event.id}
               href={`/events/${event.slug}`}
-              className="flex items-center justify-between gap-6 py-5 transition hover:text-amber-700"
+              className="flex items-center justify-between gap-6 py-5 transition hover:text-primary"
             >
               <div>
                 <p className="font-semibold text-slate-950">{event.title}</p>
@@ -138,12 +138,12 @@ function WorkflowRow({
 }) {
   return (
     <div className="flex gap-4 py-4">
-      <div className="mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-md bg-white/10 text-amber-300">
+      <div className="mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-md bg-white/10 text-brand-amber">
         {icon}
       </div>
       <div>
         <p className="font-medium">{title}</p>
-        <p className="mt-1 text-sm leading-6 text-slate-400">{description}</p>
+        <p className="mt-1 text-sm leading-6 text-white/60">{description}</p>
       </div>
     </div>
   );

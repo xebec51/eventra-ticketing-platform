@@ -18,7 +18,7 @@ export function DashboardSidebar({
 
   return (
     <aside className="w-full max-w-72 shrink-0 rounded-xl border border-sidebar-border bg-sidebar p-4 text-sidebar-foreground shadow-none lg:sticky lg:top-4 lg:self-start">
-      <EventraLogo href="/dashboard" />
+      <EventraLogo href="/dashboard" variant="inverse" />
       <p className="mt-5 border-y border-sidebar-border py-3 text-xs text-sidebar-foreground/60">
         {t(`roles.${role}`)}
       </p>

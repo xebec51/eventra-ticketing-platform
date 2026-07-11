@@ -13,29 +13,29 @@ export function EventCard({ event }: { event: EventSummary }) {
   const { locale, t } = useI18n();
 
   return (
-    <Card className="group overflow-hidden border-slate-200 bg-white shadow-none transition hover:border-slate-300">
-      <div className="h-2 bg-slate-900" />
-      <div className="border-b border-slate-100 p-6">
-        <p className="text-sm font-medium text-amber-700">{event.category}</p>
-        <h3 className="mt-3 font-heading text-2xl font-semibold leading-tight text-slate-950">
+    <Card className="group overflow-hidden border-border bg-card shadow-none transition hover:border-primary/35">
+      <div className="h-1 bg-primary" />
+      <div className="border-b border-border p-6">
+        <p className="text-sm font-medium text-brand-primary-dark">{event.category}</p>
+        <h3 className="mt-3 font-heading text-2xl font-semibold leading-tight text-foreground">
           {event.title}
         </h3>
       </div>
       <CardContent className="space-y-5 pt-5">
-        <div className="space-y-3 text-sm text-slate-600">
+        <div className="space-y-3 text-sm text-muted-foreground">
           <div className="inline-flex items-center gap-2">
-            <CalendarDays className="size-4 text-slate-400" />
+            <CalendarDays className="size-4 text-primary/65" />
             {formatI18nShortDate(event.startDate, locale)}
           </div>
           <div className="inline-flex items-center gap-2">
-            <MapPin className="size-4 text-slate-400" />
+            <MapPin className="size-4 text-primary/65" />
             {event.locationName}, {event.city}
           </div>
         </div>
-        <div className="flex items-center justify-between border-t border-slate-100 pt-4">
+        <div className="flex items-center justify-between border-t border-border pt-4">
           <div>
-            <p className="font-semibold text-slate-950">{event.priceLabel}</p>
-            <p className="text-xs text-slate-500">{t("events.startingPrice")}</p>
+            <p className="font-semibold text-foreground">{event.priceLabel}</p>
+            <p className="text-xs text-muted-foreground">{t("events.startingPrice")}</p>
           </div>
           <Link
             href={`/events/${event.slug}`}

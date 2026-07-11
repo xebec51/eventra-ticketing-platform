@@ -65,6 +65,10 @@ Core product focus:
 
 This project is part of a full-stack portfolio focused on building production-ready SaaS applications with modern web technologies, role-based access control, database-backed workflows, analytics, and polished UI/UX.
 
+## Brand Identity
+
+Eventra uses a refined violet-and-amber identity inspired by premium ticketing, event discovery, and organizer operations. Its custom ticket mark incorporates a compact letter E and remains legible in public headers, authentication screens, dashboards, and footer contexts.
+
 ---
 
 ## Highlights

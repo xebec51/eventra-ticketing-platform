@@ -15,17 +15,17 @@ export default async function LoginPage() {
     <MarketingShell>
       <section className="mx-auto max-w-md px-4 py-16 sm:px-6 lg:py-24">
         <div className="mb-8 text-center">
-          <p className="text-sm font-medium text-amber-700">{t("auth.secureAccess")}</p>
-          <h1 className="mt-3 font-heading text-3xl font-semibold text-slate-950">
+          <p className="text-sm font-medium text-primary">{t("auth.secureAccess")}</p>
+          <h1 className="mt-3 font-heading text-3xl font-semibold text-foreground">
             {t("auth.welcomeBack")}
           </h1>
-          <p className="mt-3 text-sm leading-6 text-slate-600">
+          <p className="mt-3 text-sm leading-6 text-muted-foreground">
             {t("auth.loginDescription")}
           </p>
         </div>
-        <Card className="border-slate-200 bg-white shadow-none">
+        <Card className="border-border bg-card shadow-none">
           <CardHeader>
-            <div className="flex size-10 items-center justify-center rounded-lg bg-slate-100 text-slate-700">
+            <div className="flex size-10 items-center justify-center rounded-lg bg-primary/10 text-primary">
               <LockKeyhole className="size-4" />
             </div>
             <CardTitle className="sr-only">{t("auth.welcomeBack")}</CardTitle>

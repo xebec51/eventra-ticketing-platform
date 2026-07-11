@@ -40,7 +40,8 @@ export async function TicketCard({
           : "danger";
 
   return (
-    <Card className="border border-black/5 bg-white/90">
+    <Card className="overflow-hidden border border-border bg-card shadow-none">
+      <div className="h-1 bg-primary" />
       <CardHeader className="flex flex-row items-start justify-between gap-4">
         <div>
           <CardTitle className="font-heading text-2xl">{eventTitle}</CardTitle>
@@ -86,11 +87,11 @@ function InfoCell({
   value: string;
 }) {
   return (
-    <div className="rounded-2xl border border-black/5 bg-slate-50 px-4 py-3">
+    <div className="rounded-2xl border border-border bg-muted/55 px-4 py-3">
       <p className="text-xs font-semibold uppercase tracking-[0.24em] text-muted-foreground">
         {label}
       </p>
-      <p className="mt-2 text-sm font-medium text-slate-950 break-all">{value}</p>
+      <p className="mt-2 break-all text-sm font-medium text-foreground">{value}</p>
     </div>
   );
 }

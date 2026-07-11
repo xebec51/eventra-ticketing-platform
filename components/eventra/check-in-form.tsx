@@ -95,10 +95,10 @@ export function CheckInForm() {
       <div
         className={
           feedbackTone === "success"
-            ? "flex min-h-64 flex-col justify-between rounded-[2rem] bg-emerald-500 p-6 text-white shadow-2xl shadow-emerald-500/30"
+            ? "flex min-h-64 flex-col justify-between rounded-[2rem] bg-success p-6 text-white shadow-lg shadow-success/15"
             : feedbackTone === "error"
-              ? "flex min-h-64 flex-col justify-between rounded-[2rem] bg-rose-600 p-6 text-white shadow-2xl shadow-rose-500/30"
-              : "flex min-h-64 flex-col justify-between rounded-[2rem] border border-black/5 bg-slate-950 p-6 text-white shadow-2xl shadow-slate-950/20"
+              ? "flex min-h-64 flex-col justify-between rounded-[2rem] bg-destructive p-6 text-white shadow-lg shadow-destructive/15"
+              : "flex min-h-64 flex-col justify-between rounded-[2rem] border border-white/10 bg-foreground p-6 text-white shadow-lg shadow-black/10"
         }
         aria-live="polite"
       >
@@ -144,7 +144,7 @@ export function CheckInForm() {
           autoComplete="off"
           autoCapitalize="characters"
           autoFocus
-          className="h-14 w-full rounded-2xl border border-black/10 bg-white px-4 font-mono text-base uppercase tracking-[0.18em] outline-none transition focus:border-[#d46d42] focus:ring-4 focus:ring-[#d46d42]/15"
+          className="h-14 w-full rounded-2xl border border-input bg-white px-4 font-mono text-base uppercase tracking-[0.18em] outline-none transition focus:border-primary focus:ring-4 focus:ring-primary/15"
           placeholder="TKT-XXXXXXXX"
           onChange={(event) => {
             if (debounceRef.current) {

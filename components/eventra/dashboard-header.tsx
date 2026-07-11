@@ -24,10 +24,10 @@ export function DashboardHeader({
   const { t } = useI18n();
 
   return (
-    <div className="flex flex-col gap-5 border-b border-slate-200 pb-6 lg:flex-row lg:items-end lg:justify-between">
+    <div className="flex flex-col gap-5 border-b border-border pb-6 lg:flex-row lg:items-end lg:justify-between">
       <div>
-        <p className="text-sm font-medium text-amber-700">{t(`roles.${role}`)}</p>
-        <h1 className="mt-2 font-heading text-3xl font-semibold text-slate-950">
+        <p className="text-sm font-medium text-primary">{t(`roles.${role}`)}</p>
+        <h1 className="mt-2 font-heading text-3xl font-semibold text-foreground">
           {title}
         </h1>
         <p className="mt-2 max-w-2xl text-sm leading-6 text-muted-foreground">
