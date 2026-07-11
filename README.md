@@ -64,6 +64,7 @@ Core product focus:
 ## Highlights
 
 - Public event discovery with role-aware operational dashboards
+- bilingual English and Bahasa Indonesia UI with persisted language switching
 - Admin, organizer, and user workflows inside one unified platform
 - Approval-driven booking lifecycle with separate booking and payment states
 - QR ticket generation and public verification route
@@ -81,6 +82,7 @@ Core product focus:
 - searchable event catalog
 - category and city filtering
 - event detail pages
+- polished ticket-inspired event cards and premium public discovery surfaces
 - public ticket verification route at `/verify/[ticketCode]`
 
 ### Authentication & Access Control
@@ -109,6 +111,7 @@ Core product focus:
 - approve cash-on-venue bookings
 - check in attendees by ticket code
 - access organizer analytics and reports
+- use a redesigned organizer operations studio for bookings, payments, check-in, and reports
 
 ### User Experience
 
@@ -438,6 +441,7 @@ Examples:
 - set all environment variables in the Vercel project
 - ensure `NEXTAUTH_URL` and `NEXT_PUBLIC_APP_URL` point to the deployed domain
 - the build script already runs `prisma generate && next build`
+- language preference is stored client-side and mirrored through a locale cookie for server-rendered pages
 
 ### Neon
 
