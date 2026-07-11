@@ -8,6 +8,7 @@ type SectionHeadingProps = {
   description?: string;
   action?: ReactNode;
   className?: string;
+  inverse?: boolean;
 };
 
 export function SectionHeading({
@@ -16,6 +17,7 @@ export function SectionHeading({
   description,
   action,
   className,
+  inverse = false,
 }: SectionHeadingProps) {
   return (
     <div
@@ -26,15 +28,30 @@ export function SectionHeading({
     >
       <div className="space-y-2">
         {eyebrow ? (
-          <p className="text-xs font-semibold uppercase tracking-[0.28em] text-[#d46d42]">
+          <p
+            className={cn(
+              "text-xs font-semibold uppercase tracking-[0.18em]",
+              inverse ? "text-amber-300" : "text-[#d46d42]"
+            )}
+          >
             {eyebrow}
           </p>
         ) : null}
-        <h2 className="font-heading text-3xl font-semibold tracking-tight text-foreground">
+        <h2
+          className={cn(
+            "font-heading text-3xl font-semibold text-foreground",
+            inverse && "text-white"
+          )}
+        >
           {title}
         </h2>
         {description ? (
-          <p className="max-w-2xl text-sm leading-6 text-muted-foreground sm:text-base">
+          <p
+            className={cn(
+              "max-w-2xl text-sm leading-6 text-muted-foreground sm:text-base",
+              inverse && "text-white/70"
+            )}
+          >
             {description}
           </p>
         ) : null}

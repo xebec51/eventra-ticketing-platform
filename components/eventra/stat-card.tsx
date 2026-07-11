@@ -24,20 +24,20 @@ export function StatCard({
   const positiveTone = tone === "success" || tone === "default";
 
   return (
-    <Card className="border border-black/5 bg-white/90 shadow-[0_16px_50px_rgba(15,23,42,0.06)]">
-      <CardHeader className="flex flex-row items-start justify-between gap-4">
+    <Card className="eventra-panel overflow-hidden rounded-xl">
+      <CardHeader className="flex flex-row items-start justify-between gap-4 pb-3">
         <div>
           <p className="text-sm text-muted-foreground">{label}</p>
-          <CardTitle className="mt-3 font-heading text-3xl font-semibold tracking-tight">
+          <CardTitle className="mt-2 font-heading text-3xl font-semibold">
             {value}
           </CardTitle>
         </div>
-        <div className="flex size-11 items-center justify-center rounded-2xl bg-slate-950 text-white">
+        <div className="flex size-10 items-center justify-center rounded-lg bg-slate-950 text-white">
           {icon ?? <TrendingUp className="size-5" />}
         </div>
       </CardHeader>
       <CardContent>
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center gap-2">
           <StatusBadge label={change} tone={tone} />
           <span
             className={cn(

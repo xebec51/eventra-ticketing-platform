@@ -3,6 +3,8 @@ import {
   ArrowRight,
   CalendarCheck2,
   ChartColumn,
+  CheckCircle2,
+  QrCode,
   ShieldCheck,
   Ticket,
 } from "lucide-react";
@@ -37,12 +39,12 @@ export default async function Home() {
 
   return (
     <MarketingShell>
-      <section className="mx-auto grid max-w-7xl gap-12 px-4 pb-20 pt-16 sm:px-6 lg:grid-cols-[1.1fr_0.9fr] lg:px-8 lg:pt-20">
-        <div className="space-y-8">
+      <section className="mx-auto grid min-h-[calc(100vh-5rem)] max-w-7xl items-center gap-10 px-4 pb-12 pt-10 sm:px-6 lg:grid-cols-[0.95fr_1.05fr] lg:px-8">
+        <div className="space-y-7">
           <StatusBadge label={t("marketing.heroBadge")} tone="warning" />
           <div className="space-y-5">
-            <h1 className="max-w-3xl font-heading text-5xl font-semibold leading-[1.02] tracking-tight text-slate-950 sm:text-6xl">
-              {t("marketing.heroTitle")}
+            <h1 className="max-w-3xl font-heading text-5xl font-semibold leading-[1.02] text-slate-950 sm:text-6xl">
+              Eventra
             </h1>
             <p className="max-w-2xl text-lg leading-8 text-slate-600">
               {t("marketing.heroDescription")}
@@ -59,7 +61,7 @@ export default async function Home() {
               {t("marketing.applyAsOrganizer")}
             </Link>
           </div>
-          <div className="grid gap-4 sm:grid-cols-3">
+          <div className="grid gap-3 sm:grid-cols-3">
             <StatCard
               label={t("marketing.ticketsIssued")}
               value="18.4K"
@@ -83,24 +85,31 @@ export default async function Home() {
           </div>
         </div>
 
-        <div className="relative">
-          <div className="absolute -left-10 top-10 h-48 w-48 rounded-full bg-[#ffcb69]/60 blur-3xl" />
-          <div className="absolute -right-12 bottom-12 h-56 w-56 rounded-full bg-[#1dd3b0]/20 blur-3xl" />
-          <Card className="relative overflow-hidden border border-white/70 bg-white/90 shadow-[0_30px_120px_rgba(35,25,66,0.16)]">
-            <div className="bg-[linear-gradient(135deg,#231942_0%,#d46d42_46%,#ffcb69_100%)] p-7 text-white">
-              <div className="inline-flex items-center gap-2 rounded-full bg-white/15 px-3 py-1 text-xs font-semibold uppercase tracking-[0.28em] backdrop-blur">
-                {t("marketing.platformSnapshot")}
+        <div className="relative overflow-hidden rounded-2xl bg-slate-950 p-3 shadow-[0_32px_100px_rgba(17,24,39,0.32)]">
+          <div className="absolute inset-0 bg-[linear-gradient(135deg,#111827_0%,#24174f_42%,#1f3a8a_100%)]" />
+          <div className="absolute inset-x-8 top-6 h-px bg-white/20" />
+          <div className="relative grid gap-3">
+            <div className="rounded-xl border border-white/10 bg-white/10 p-5 text-white">
+              <div className="flex items-center justify-between gap-4">
+                <div>
+                  <p className="text-xs font-semibold uppercase text-white/60">
+                    {t("marketing.platformSnapshot")}
+                  </p>
+                  <h2 className="mt-3 max-w-xl font-heading text-3xl font-semibold">
+                    {t("marketing.approvalsTitle")}
+                  </h2>
+                </div>
+                <div className="flex size-14 items-center justify-center rounded-xl bg-amber-300 text-slate-950">
+                  <QrCode className="size-7" />
+                </div>
               </div>
-              <h2 className="mt-6 font-heading text-3xl font-semibold">
-                {t("marketing.approvalsTitle")}
-              </h2>
-              <p className="mt-4 max-w-md text-sm leading-6 text-white/80">
+              <p className="mt-4 max-w-xl text-sm leading-6 text-white/75">
                 {t("marketing.approvalsFlowDescription")}
               </p>
             </div>
-            <CardContent className="grid gap-4 p-7 md:grid-cols-2">
-              <div className="rounded-3xl border border-black/5 bg-slate-50 p-5">
-                <p className="text-xs font-semibold uppercase tracking-[0.28em] text-muted-foreground">
+            <div className="grid gap-3 md:grid-cols-2">
+              <div className="rounded-xl border border-white/10 bg-white/90 p-5">
+                <p className="text-xs font-semibold uppercase text-muted-foreground">
                   {t("marketing.adminLens")}
                 </p>
                 <p className="mt-3 font-heading text-2xl font-semibold">
@@ -110,8 +119,8 @@ export default async function Home() {
                   {t("marketing.adminLensDescription")}
                 </p>
               </div>
-              <div className="rounded-3xl border border-black/5 bg-slate-50 p-5">
-                <p className="text-xs font-semibold uppercase tracking-[0.28em] text-muted-foreground">
+              <div className="rounded-xl border border-white/10 bg-white/90 p-5">
+                <p className="text-xs font-semibold uppercase text-muted-foreground">
                   {t("marketing.organizerLens")}
                 </p>
                 <p className="mt-3 font-heading text-2xl font-semibold">
@@ -121,10 +130,10 @@ export default async function Home() {
                   {t("marketing.organizerLensDescription")}
                 </p>
               </div>
-              <div className="rounded-3xl border border-black/5 bg-slate-50 p-5 md:col-span-2">
+              <div className="rounded-xl border border-white/10 bg-white p-5 md:col-span-2">
                 <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                   <div>
-                    <p className="text-xs font-semibold uppercase tracking-[0.28em] text-muted-foreground">
+                    <p className="text-xs font-semibold uppercase text-muted-foreground">
                       {t("marketing.attendeeExperience")}
                     </p>
                     <p className="mt-3 font-heading text-2xl font-semibold">
@@ -135,13 +144,13 @@ export default async function Home() {
                     href="/dashboard/user"
                     className={cn(buttonVariants({ variant: "outline" }))}
                   >
+                    <CheckCircle2 className="size-4" />
                     {t("marketing.previewUserWorkspace")}
-                    <ArrowRight className="size-4" />
                   </Link>
                 </div>
               </div>
-            </CardContent>
-          </Card>
+            </div>
+          </div>
         </div>
       </section>
 
@@ -155,7 +164,7 @@ export default async function Home() {
           {categories.map((category) => (
             <Card
               key={category.id}
-              className="border border-black/5 bg-white/85 shadow-[0_18px_55px_rgba(15,23,42,0.05)]"
+              className="eventra-panel rounded-xl"
             >
               <CardContent className="space-y-4 pt-6">
                 <StatusBadge label={`${category._count.events} events`} tone="default" />
@@ -196,7 +205,7 @@ export default async function Home() {
 
       <section className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
         <div className="grid gap-6 xl:grid-cols-2">
-          <Card className="border border-black/5 bg-white/90">
+          <Card className="eventra-panel rounded-xl">
             <CardContent className="space-y-5 pt-6">
               <div className="flex items-center justify-between gap-4">
                 <div>
@@ -226,7 +235,7 @@ export default async function Home() {
               </div>
             </CardContent>
           </Card>
-          <Card className="border border-black/5 bg-white/90">
+          <Card className="eventra-panel rounded-xl">
             <CardContent className="space-y-5 pt-6">
               <div className="flex items-center justify-between gap-4">
                 <div>
@@ -260,7 +269,7 @@ export default async function Home() {
       </section>
 
       <section className="mx-auto max-w-7xl px-4 pb-20 pt-8 sm:px-6 lg:px-8">
-        <Card className="overflow-hidden border border-white/70 bg-slate-950 text-white shadow-[0_30px_120px_rgba(15,23,42,0.28)]">
+        <Card className="overflow-hidden rounded-2xl border border-white/70 bg-slate-950 text-white shadow-[0_30px_120px_rgba(15,23,42,0.28)]">
           <CardContent className="grid gap-10 p-8 lg:grid-cols-[1fr_0.9fr] lg:p-10">
             <div className="space-y-4">
               <StatusBadge label={t("marketing.dashboardReady")} tone="warning" />
@@ -310,8 +319,8 @@ function MiniFeature({
   description: string;
 }) {
   return (
-    <div className="rounded-[1.75rem] border border-white/10 bg-white/6 p-5">
-      <div className="flex size-11 items-center justify-center rounded-2xl bg-white/10">
+    <div className="rounded-xl border border-white/10 bg-white/6 p-5">
+      <div className="flex size-11 items-center justify-center rounded-lg bg-white/10">
         {icon}
       </div>
       <h3 className="mt-4 font-heading text-lg font-semibold">{title}</h3>
@@ -332,7 +341,7 @@ function CompactEventRow({
   return (
     <Link
       href={href}
-      className="flex items-center justify-between rounded-3xl border border-black/5 bg-slate-50 px-4 py-4 transition hover:bg-slate-100"
+      className="flex items-center justify-between rounded-xl border border-black/5 bg-slate-50 px-4 py-4 transition hover:bg-slate-100"
     >
       <div>
         <p className="font-semibold text-slate-950">{title}</p>

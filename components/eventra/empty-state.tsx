@@ -16,9 +16,9 @@ export function EmptyState({
   action,
 }: EmptyStateProps) {
   return (
-    <Card className="border-dashed border-black/10 bg-white/70">
+    <Card className="eventra-panel rounded-xl border-dashed">
       <CardContent className="flex flex-col items-center justify-center gap-4 py-14 text-center">
-        <div className="flex size-14 items-center justify-center rounded-full bg-slate-900 text-white">
+        <div className="flex size-14 items-center justify-center rounded-xl bg-slate-950 text-white">
           {icon}
         </div>
         <div className="space-y-2">

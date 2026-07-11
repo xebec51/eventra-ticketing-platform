@@ -120,12 +120,11 @@ export default async function EventDetailPage({
   return (
     <MarketingShell>
       <section className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
-        <div
-          className={cn(
-            "rounded-[2rem] bg-gradient-to-br p-8 text-white lg:p-10",
-            "from-[#231942] via-[#d46d42] to-[#ffcb69]"
-          )}
-        >
+        <div className="relative overflow-hidden rounded-2xl bg-slate-950 p-8 text-white shadow-[0_30px_100px_rgba(17,24,39,0.28)] lg:p-10">
+          <div className="absolute inset-0 bg-[linear-gradient(135deg,#111827_0%,#24174f_48%,#1f3a8a_100%)]" />
+          <div className="absolute -right-16 top-10 h-56 w-56 rounded-full border border-white/15" />
+          <div className="absolute -right-2 top-32 h-24 w-24 rounded-full border border-white/15" />
+          <div className="relative">
           <div className="flex flex-wrap items-center gap-3">
             <StatusBadge label={event.category.name} tone="default" />
             <StatusBadge label={event.city} tone="warning" />
@@ -151,14 +150,15 @@ export default async function EventDetailPage({
               label={
                 event.ticketTypes.length
                   ? formatCurrency(event.ticketTypes[0].price.toString(), locale)
-                  : "Free"
+                  : t("status.paymentMethod.FREE")
               }
             />
+          </div>
           </div>
         </div>
 
         <div className="mt-8 grid gap-6 xl:grid-cols-[1.15fr_0.85fr]">
-          <Card className="border border-black/5 bg-white/90">
+          <Card className="eventra-panel rounded-xl">
               <CardHeader>
                 <CardTitle className="font-heading text-2xl">
                 {t("nav.overview")}
@@ -166,9 +166,9 @@ export default async function EventDetailPage({
               </CardHeader>
             <CardContent className="space-y-6 text-sm leading-7 text-muted-foreground">
               <p>
-                Hosted by {event.organizerProfile.organizationName}, this public
-                listing exposes live ticket inventory, visible attendee feedback,
-                and the approval model before checkout begins.
+                Hosted by {event.organizerProfile.organizationName}, this listing
+                exposes live ticket inventory, attendee feedback, and approval
+                expectations before checkout begins.
               </p>
               <div className="grid gap-4 sm:grid-cols-2">
                 <FeaturePanel
@@ -196,7 +196,7 @@ export default async function EventDetailPage({
                   event.eventReviews.slice(0, 3).map((review) => (
                     <div
                       key={review.id}
-                      className="rounded-3xl border border-black/5 bg-slate-50 p-4"
+                      className="rounded-xl border border-black/5 bg-slate-50 p-4"
                     >
                       <div className="flex items-center justify-between gap-4">
                         <p className="font-semibold text-slate-900">
@@ -217,7 +217,7 @@ export default async function EventDetailPage({
           </Card>
 
           <div className="space-y-6">
-            <Card className="border border-black/5 bg-white/90">
+            <Card className="eventra-panel rounded-xl">
               <CardHeader>
                 <CardTitle className="font-heading text-2xl">
                   Booking snapshot
@@ -237,7 +237,7 @@ export default async function EventDetailPage({
                     tone="default"
                   />
                 </div>
-                <div className="rounded-3xl border border-black/5 bg-slate-50 p-4">
+                <div className="rounded-xl border border-black/5 bg-slate-50 p-4">
                   <p className="text-sm font-semibold text-slate-900">
                     Primary CTA
                   </p>
@@ -254,7 +254,7 @@ export default async function EventDetailPage({
                       price={
                         ticketType.price > 0
                           ? formatCurrency(ticketType.price)
-                          : "Free"
+                          : t("status.paymentMethod.FREE")
                       }
                       note={`${ticketType.available} available | max ${ticketType.maxPerBooking} per booking`}
                     />
@@ -276,7 +276,7 @@ export default async function EventDetailPage({
                 )}
               </CardContent>
             </Card>
-            <Card className="border border-black/5 bg-white/90">
+            <Card className="eventra-panel rounded-xl">
               <CardHeader>
                 <CardTitle className="font-heading text-xl">
                   Expected flows
@@ -316,7 +316,7 @@ function InfoPill({
   label: string;
 }) {
   return (
-    <div className="inline-flex items-center gap-2 rounded-full bg-white/12 px-4 py-2.5 backdrop-blur">
+    <div className="inline-flex items-center gap-2 rounded-lg bg-white/12 px-4 py-2.5 backdrop-blur">
       {icon}
       {label}
     </div>
@@ -331,7 +331,7 @@ function FeaturePanel({
   description: string;
 }) {
   return (
-    <div className="rounded-3xl border border-black/5 bg-slate-50 p-4">
+    <div className="rounded-xl border border-black/5 bg-slate-50 p-4">
       <p className="font-heading text-lg font-semibold text-slate-900">{title}</p>
       <p className="mt-2 text-sm leading-6 text-muted-foreground">
         {description}
@@ -350,7 +350,7 @@ function TicketTier({
   note: string;
 }) {
   return (
-    <div className="flex items-center justify-between rounded-3xl border border-black/5 bg-slate-50 p-4">
+    <div className="flex items-center justify-between rounded-xl border border-black/5 bg-slate-50 p-4">
       <div>
         <p className="font-semibold text-slate-900">{name}</p>
         <p className="mt-1 text-sm text-muted-foreground">{note}</p>
@@ -368,7 +368,7 @@ function FlowRow({
   badge: React.ReactNode;
 }) {
   return (
-    <div className="flex items-center justify-between rounded-2xl border border-black/5 bg-slate-50 px-4 py-3">
+    <div className="flex items-center justify-between rounded-xl border border-black/5 bg-slate-50 px-4 py-3">
       <div className="inline-flex items-center gap-2 text-sm font-medium text-slate-700">
         <Clock3 className="size-4 text-[#d46d42]" />
         {label}

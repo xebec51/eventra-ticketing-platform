@@ -16,7 +16,7 @@ export default async function LoginPage() {
     <MarketingShell>
       <section className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
         <div className="grid gap-8 lg:grid-cols-[1fr_0.9fr]">
-          <Card className="border border-black/5 bg-slate-950 text-white shadow-[0_28px_100px_rgba(15,23,42,0.28)]">
+          <Card className="overflow-hidden rounded-2xl border border-black/5 bg-slate-950 text-white shadow-[0_28px_100px_rgba(15,23,42,0.28)]">
             <CardContent className="space-y-6 p-8 lg:p-10">
               <StatusBadge label={t("auth.secureAccess")} tone="warning" />
               <h1 className="font-heading text-4xl font-semibold tracking-tight">
@@ -38,9 +38,9 @@ export default async function LoginPage() {
             </CardContent>
           </Card>
 
-          <Card className="border border-black/5 bg-white/92 shadow-[0_24px_70px_rgba(15,23,42,0.08)]">
+          <Card className="eventra-panel rounded-2xl">
             <CardHeader>
-              <div className="flex size-12 items-center justify-center rounded-2xl bg-[#fff1e8] text-[#d46d42]">
+              <div className="flex size-12 items-center justify-center rounded-xl bg-amber-100 text-amber-800">
                 <LockKeyhole className="size-5" />
               </div>
               <CardTitle className="pt-3 font-heading text-3xl">
@@ -49,7 +49,7 @@ export default async function LoginPage() {
             </CardHeader>
             <CardContent className="space-y-5">
               <LoginForm />
-              <div className="rounded-3xl border border-emerald-100 bg-emerald-50 p-4 text-sm text-emerald-900">
+              <div className="rounded-xl border border-emerald-100 bg-emerald-50 p-4 text-sm text-emerald-900">
                 <div className="flex items-start gap-3">
                   <ShieldCheck className="mt-0.5 size-4 shrink-0" />
                   <p>
@@ -82,7 +82,7 @@ function FeatureMessage({
   description: string;
 }) {
   return (
-    <div className="rounded-[1.75rem] border border-white/10 bg-white/8 p-5">
+    <div className="rounded-xl border border-white/10 bg-white/8 p-5">
       <p className="font-heading text-lg font-semibold">{title}</p>
       <p className="mt-2 text-sm leading-6 text-white/70">{description}</p>
     </div>

@@ -43,13 +43,21 @@ export default async function EventsPage({
 
   return (
     <MarketingShell>
-      <section className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
-        <SectionHeading
-          eyebrow={t("events.catalogEyebrow")}
-          title={t("events.catalogTitle")}
-          description={t("events.catalogDescription")}
-        />
-        <div className="mt-8">
+      <section className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
+        <div className="rounded-2xl bg-slate-950 p-6 text-white shadow-[0_24px_80px_rgba(17,24,39,0.22)] sm:p-8">
+          <SectionHeading
+            eyebrow={t("events.catalogEyebrow")}
+            title={t("events.catalogTitle")}
+            description={t("events.catalogDescription")}
+            inverse
+          />
+          <div className="mt-5 grid gap-3 text-sm text-white/70 sm:grid-cols-3">
+            <p>{events.length} curated listings</p>
+            <p>{categories.length} categories</p>
+            <p>{cityOptions.length} active cities</p>
+          </div>
+        </div>
+        <div className="mt-6 rounded-2xl border border-black/5 bg-white/90 p-4 shadow-[0_18px_55px_rgba(15,23,42,0.08)]">
           <EventFilters
             query={q}
             category={category}
@@ -60,7 +68,7 @@ export default async function EventsPage({
           />
         </div>
         {events.length > 0 ? (
-          <div className="mt-8 grid gap-6 xl:grid-cols-3">
+          <div className="mt-8 grid gap-6 lg:grid-cols-2 xl:grid-cols-3">
             {events.map((event) => (
               <EventCard key={event.id} event={event} />
             ))}

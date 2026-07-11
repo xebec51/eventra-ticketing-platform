@@ -57,12 +57,12 @@ export function LoginForm() {
   return (
     <form onSubmit={handleSubmit} className="space-y-5">
       {successMessage ? (
-        <div className="rounded-3xl border border-emerald-100 bg-emerald-50 p-4 text-sm text-emerald-900">
+        <div className="rounded-xl border border-emerald-100 bg-emerald-50 p-4 text-sm text-emerald-900">
           {successMessage}
         </div>
       ) : null}
       {error ? (
-        <div className="rounded-3xl border border-rose-100 bg-rose-50 p-4 text-sm text-rose-700">
+        <div className="rounded-xl border border-rose-100 bg-rose-50 p-4 text-sm text-rose-700">
           {error}
         </div>
       ) : null}
@@ -73,7 +73,7 @@ export function LoginForm() {
           name="email"
           type="email"
           placeholder="admin@eventra.demo"
-          className="h-11 border-black/10"
+          className="h-11 border-black/10 bg-slate-50"
           disabled={isPending}
           required
         />
@@ -85,7 +85,7 @@ export function LoginForm() {
           name="password"
           type="password"
           placeholder="Password123!"
-          className="h-11 border-black/10"
+          className="h-11 border-black/10 bg-slate-50"
           disabled={isPending}
           required
         />

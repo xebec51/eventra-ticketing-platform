@@ -58,38 +58,38 @@
   --font-mono-stack:
     ui-monospace, "SFMono-Regular", "SF Mono", Menlo, Monaco, Consolas,
     "Liberation Mono", "Courier New", monospace;
-  --background: oklch(0.992 0.01 84.59);
-  --foreground: oklch(0.22 0.03 259.4);
+  --background: oklch(0.985 0.012 259.2);
+  --foreground: oklch(0.19 0.04 259.4);
   --card: oklch(1 0 0);
-  --card-foreground: oklch(0.22 0.03 259.4);
+  --card-foreground: oklch(0.19 0.04 259.4);
   --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.22 0.03 259.4);
-  --primary: oklch(0.38 0.12 12.36);
+  --popover-foreground: oklch(0.19 0.04 259.4);
+  --primary: oklch(0.38 0.16 269.52);
   --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.96 0.02 69.54);
-  --secondary-foreground: oklch(0.27 0.03 258.86);
-  --muted: oklch(0.97 0.01 248.83);
-  --muted-foreground: oklch(0.52 0.03 257.42);
-  --accent: oklch(0.94 0.04 57.57);
-  --accent-foreground: oklch(0.24 0.03 260.03);
+  --secondary: oklch(0.95 0.025 252.2);
+  --secondary-foreground: oklch(0.25 0.04 260.03);
+  --muted: oklch(0.965 0.012 252.2);
+  --muted-foreground: oklch(0.47 0.035 257.42);
+  --accent: oklch(0.86 0.16 78.9);
+  --accent-foreground: oklch(0.22 0.04 260.03);
   --destructive: oklch(0.58 0.2 24.29);
   --border: oklch(0.91 0.01 255.51);
   --input: oklch(0.91 0.01 255.51);
-  --ring: oklch(0.62 0.1 14.62);
-  --chart-1: oklch(0.67 0.14 33.78);
-  --chart-2: oklch(0.71 0.13 182.5);
-  --chart-3: oklch(0.49 0.1 269.52);
-  --chart-4: oklch(0.79 0.12 85.48);
-  --chart-5: oklch(0.61 0.11 12.04);
-  --radius: 1rem;
-  --sidebar: oklch(0.985 0.01 255.51);
-  --sidebar-foreground: oklch(0.22 0.03 259.4);
-  --sidebar-primary: oklch(0.38 0.12 12.36);
+  --ring: oklch(0.56 0.14 269.52);
+  --chart-1: oklch(0.58 0.19 269.52);
+  --chart-2: oklch(0.72 0.16 78.9);
+  --chart-3: oklch(0.68 0.14 183.4);
+  --chart-4: oklch(0.62 0.18 25.5);
+  --chart-5: oklch(0.54 0.12 302.2);
+  --radius: 0.75rem;
+  --sidebar: oklch(0.18 0.045 259.4);
+  --sidebar-foreground: oklch(0.97 0.01 255.51);
+  --sidebar-primary: oklch(0.78 0.16 78.9);
   --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.96 0.02 69.54);
-  --sidebar-accent-foreground: oklch(0.27 0.03 258.86);
-  --sidebar-border: oklch(0.91 0.01 255.51);
-  --sidebar-ring: oklch(0.62 0.1 14.62);
+  --sidebar-accent: oklch(0.26 0.06 262.2);
+  --sidebar-accent-foreground: oklch(0.98 0.01 255.51);
+  --sidebar-border: oklch(0.3 0.05 262.2);
+  --sidebar-ring: oklch(0.78 0.16 78.9);
 }
 
 @layer base {
@@ -103,9 +103,31 @@
 
   body {
     @apply bg-background font-sans text-foreground;
+    background-image:
+      linear-gradient(180deg, color-mix(in oklch, var(--background) 96%, white), var(--background)),
+      radial-gradient(circle at 18% 0%, color-mix(in oklch, var(--accent) 20%, transparent), transparent 32%),
+      radial-gradient(circle at 82% 12%, color-mix(in oklch, var(--primary) 16%, transparent), transparent 28%);
+    background-attachment: fixed;
   }
 
   ::selection {
     background: color-mix(in oklch, var(--primary) 18%, white);
+  }
+}
+
+@layer utilities {
+  .eventra-panel {
+    @apply border border-black/5 bg-white/90 shadow-[0_18px_55px_rgba(15,23,42,0.08)];
+  }
+
+  .eventra-ink {
+    background:
+      linear-gradient(135deg, #111827 0%, #24174f 44%, #1f3a8a 100%);
+  }
+
+  .eventra-ticket-edge {
+    background-image:
+      radial-gradient(circle at 0 50%, transparent 0.78rem, white 0.82rem),
+      radial-gradient(circle at 100% 50%, transparent 0.78rem, white 0.82rem);
   }
 }

@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { CalendarDays, Heart, MapPin, Star } from "lucide-react";
+import { CalendarDays, Heart, MapPin, Star, Ticket } from "lucide-react";
 
 import { StatusBadge } from "@/components/eventra/status-badge";
 import { Card, CardContent } from "@/components/ui/card";
@@ -15,18 +15,21 @@ export function EventCard({ event }: { event: EventSummary }) {
   const { locale, t } = useI18n();
 
   return (
-    <Card className="overflow-hidden border border-black/5 bg-white/90 shadow-[0_20px_60px_rgba(15,23,42,0.07)]">
-      <div className={cn("h-52 bg-gradient-to-br", event.imageAccent)}>
+    <Card className="eventra-panel group overflow-hidden rounded-xl transition duration-300 hover:-translate-y-1 hover:shadow-[0_26px_70px_rgba(15,23,42,0.14)]">
+      <div className={cn("relative h-56 overflow-hidden bg-gradient-to-br", event.imageAccent)}>
+        <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(17,24,39,0.12),rgba(17,24,39,0.72))]" />
+        <div className="absolute -right-10 top-8 h-36 w-36 rounded-full border border-white/20" />
+        <div className="absolute -right-2 top-20 h-20 w-20 rounded-full border border-white/20" />
         <div className="flex h-full flex-col justify-between p-6 text-white">
           <div className="flex items-center justify-between">
             <StatusBadge label={event.category} tone="default" />
-            <div className="inline-flex items-center gap-1 rounded-full bg-white/15 px-3 py-1 text-xs font-medium backdrop-blur-sm">
+            <div className="inline-flex items-center gap-1 rounded-md bg-white/15 px-3 py-1 text-xs font-medium backdrop-blur-sm">
               <Heart className="size-3.5" />
               {event.favorites}
             </div>
           </div>
           <div className="space-y-3">
-            <p className="text-xs font-semibold uppercase tracking-[0.28em] text-white/80">
+            <p className="text-xs font-semibold uppercase text-white/80">
               {event.city}
             </p>
             <h3 className="font-heading text-2xl font-semibold leading-tight">
@@ -57,7 +60,7 @@ export function EventCard({ event }: { event: EventSummary }) {
             <span className="text-muted-foreground">{t("events.startingPrice")}</span>
           </div>
         </div>
-        <div className="flex items-center justify-between border-t border-black/5 pt-4">
+        <div className="eventra-ticket-edge -mx-2 flex items-center justify-between border-t border-dashed border-black/10 px-2 pt-4">
           <div>
             <p className="text-sm font-semibold text-slate-900">
               {event.attendees.toLocaleString(locale === "id" ? "id-ID" : "en-US")} {t("events.attendees")}
@@ -68,8 +71,9 @@ export function EventCard({ event }: { event: EventSummary }) {
           </div>
           <Link
             href={`/events/${event.slug}`}
-            className={cn(buttonVariants({ size: "sm" }))}
+            className={cn(buttonVariants({ size: "sm" }), "rounded-lg")}
         >
+            <Ticket className="size-4" />
             {t("events.viewDetail")}
           </Link>
         </div>

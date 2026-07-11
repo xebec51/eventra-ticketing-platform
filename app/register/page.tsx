@@ -13,7 +13,7 @@ export default async function RegisterPage() {
   return (
     <MarketingShell>
       <section className="mx-auto max-w-4xl px-4 py-16 sm:px-6 lg:px-8">
-        <Card className="border border-black/5 bg-white/92 shadow-[0_24px_70px_rgba(15,23,42,0.08)]">
+        <Card className="eventra-panel rounded-2xl">
           <CardHeader>
             <CardTitle className="font-heading text-3xl">
               {t("auth.registerTitle")}

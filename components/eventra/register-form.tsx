@@ -32,13 +32,13 @@ export function RegisterForm() {
   return (
     <form action={action} className="grid gap-5 sm:grid-cols-2">
       {state.message ? (
-        <div className="sm:col-span-2 rounded-3xl border border-rose-100 bg-rose-50 p-4 text-sm text-rose-700">
+        <div className="rounded-xl border border-rose-100 bg-rose-50 p-4 text-sm text-rose-700 sm:col-span-2">
           {state.message}
         </div>
       ) : null}
       <div className="space-y-2 sm:col-span-2">
         <Label htmlFor="name">{t("auth.fullName")}</Label>
-        <Input id="name" name="name" placeholder="Alya Setiawan" className="h-11 border-black/10" />
+        <Input id="name" name="name" placeholder="Alya Setiawan" className="h-11 border-black/10 bg-slate-50" />
         <FieldError message={state.errors?.name} />
       </div>
       <div className="space-y-2">
@@ -48,13 +48,13 @@ export function RegisterForm() {
           name="email"
           type="email"
           placeholder="you@example.com"
-          className="h-11 border-black/10"
+          className="h-11 border-black/10 bg-slate-50"
         />
         <FieldError message={state.errors?.email} />
       </div>
       <div className="space-y-2">
         <Label htmlFor="phone">{t("auth.phone")}</Label>
-        <Input id="phone" name="phone" placeholder="+65 8123 4567" className="h-11 border-black/10" />
+        <Input id="phone" name="phone" placeholder="+65 8123 4567" className="h-11 border-black/10 bg-slate-50" />
         <FieldError message={state.errors?.phone} />
       </div>
       <div className="space-y-2">
@@ -64,7 +64,7 @@ export function RegisterForm() {
           name="password"
           type="password"
           placeholder={t("auth.createStrongPassword")}
-          className="h-11 border-black/10"
+          className="h-11 border-black/10 bg-slate-50"
         />
         <FieldError message={state.errors?.password} />
       </div>
@@ -75,7 +75,7 @@ export function RegisterForm() {
           name="confirmPassword"
           type="password"
           placeholder={t("auth.repeatPassword")}
-          className="h-11 border-black/10"
+          className="h-11 border-black/10 bg-slate-50"
         />
         <FieldError message={state.errors?.confirmPassword} />
       </div>
