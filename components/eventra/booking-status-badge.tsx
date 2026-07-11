@@ -1,6 +1,10 @@
+"use client";
+
 import type { BookingStatus } from "@/lib/types";
 
 import { StatusBadge } from "@/components/eventra/status-badge";
+import { useI18n } from "@/lib/i18n/use-i18n";
+import { translateBookingStatus } from "@/lib/i18n/status";
 
 const bookingToneMap: Record<
   BookingStatus,
@@ -13,5 +17,7 @@ const bookingToneMap: Record<
 };
 
 export function BookingStatusBadge({ status }: { status: BookingStatus }) {
-  return <StatusBadge label={status} tone={bookingToneMap[status]} />;
+  const { locale } = useI18n();
+
+  return <StatusBadge label={translateBookingStatus(status, locale)} tone={bookingToneMap[status]} />;
 }

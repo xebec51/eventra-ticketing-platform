@@ -5,11 +5,14 @@ import { StatusBadge } from "@/components/eventra/status-badge";
 import { buttonVariants } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { requireSessionUser } from "@/lib/auth";
+import { getServerTranslator } from "@/lib/i18n/server";
+import { translateRole, translateUserStatus } from "@/lib/i18n/status";
 import { prisma } from "@/lib/prisma";
 import { cn } from "@/lib/utils";
 
 export default async function DashboardProfilePage() {
   const sessionUser = await requireSessionUser();
+  const { locale, t } = await getServerTranslator();
   const profileHref =
     sessionUser.role === "USER"
       ? "/dashboard/user/profile"
@@ -35,15 +38,14 @@ export default async function DashboardProfilePage() {
       <Card className="border border-black/5 bg-white/90">
         <CardHeader>
           <div className="flex flex-wrap items-center gap-2">
-            <StatusBadge label={sessionUser.role} tone="default" />
-            <StatusBadge label={sessionUser.status} tone="warning" />
+            <StatusBadge label={translateRole(sessionUser.role, locale)} tone="default" />
+            <StatusBadge label={translateUserStatus(sessionUser.status, locale)} tone="warning" />
           </div>
           <CardTitle className="mt-2 font-heading text-2xl">
-            Shared profile center
+            {t("dashboard.sharedProfileCenter")}
           </CardTitle>
           <p className="mt-2 text-sm leading-6 text-muted-foreground">
-            Use this landing page to understand your current account state, then
-            jump to the role-specific profile editor that fits your workflow.
+            {t("dashboard.sharedProfileDescription")}
           </p>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -58,7 +60,7 @@ export default async function DashboardProfilePage() {
               href={profileHref}
               className={cn(buttonVariants({ size: "lg" }))}
             >
-              Open role-specific profile
+              {t("dashboard.openRoleProfile")}
             </Link>
           )}
         </CardContent>

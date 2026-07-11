@@ -14,6 +14,8 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { translateRole, translateUserStatus } from "@/lib/i18n/status";
+import { useI18n } from "@/lib/i18n/use-i18n";
 import type { UserRole, UserStatus } from "@/lib/types";
 
 export function DashboardUserMenu({
@@ -27,6 +29,8 @@ export function DashboardUserMenu({
   role: UserRole;
   status: UserStatus;
 }) {
+  const { locale, t } = useI18n();
+
   return (
     <DropdownMenu>
       <DropdownMenuTrigger render={<Button variant="outline" size="lg" />}>
@@ -40,9 +44,9 @@ export function DashboardUserMenu({
             <p className="font-heading text-sm font-semibold text-slate-950">{name}</p>
             <p className="text-xs text-muted-foreground">{email}</p>
             <div className="flex items-center gap-2">
-              <StatusBadge label={role} tone="default" />
+              <StatusBadge label={translateRole(role, locale)} tone="default" />
               <StatusBadge
-                label={status}
+                label={translateUserStatus(status, locale)}
                 tone={status === "ACTIVE" ? "success" : status === "PENDING" ? "warning" : "danger"}
               />
             </div>
@@ -50,10 +54,10 @@ export function DashboardUserMenu({
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
         <DropdownMenuItem render={<Link href="/dashboard/profile" />}>
-          Profile settings
+          {t("dashboard.profileSettings")}
         </DropdownMenuItem>
         <DropdownMenuItem render={<Link href="/dashboard/settings" />}>
-          Workspace settings
+          {t("dashboard.workspaceSettings")}
         </DropdownMenuItem>
         <DropdownMenuSeparator />
         <SignOutButton />

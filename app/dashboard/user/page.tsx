@@ -13,11 +13,18 @@ import {
 } from "@/lib/analytics";
 import { requireRole } from "@/lib/auth";
 import { formatDateTime } from "@/lib/formatters";
+import { getServerTranslator } from "@/lib/i18n/server";
+import {
+  translateBookingStatus,
+  translatePaymentStatus,
+  translateTicketStatus,
+} from "@/lib/i18n/status";
 import { prisma } from "@/lib/prisma";
 import { cn } from "@/lib/utils";
 
 export default async function UserDashboardPage() {
   const user = await requireRole("USER");
+  const { locale, t } = await getServerTranslator();
   const [
     bookingGroups,
     ticketGroups,
@@ -72,30 +79,54 @@ export default async function UserDashboardPage() {
   const bookingDistribution = buildDistribution(
     BOOKING_STATUS_ORDER,
     toCountRecord(bookingGroups, "status")
-  );
+  ).map((item) => ({
+    ...item,
+    label: translateBookingStatus(item.label as never, locale),
+  }));
   const ticketDistribution = buildDistribution(
     TICKET_STATUS_ORDER,
     toCountRecord(ticketGroups, "status")
-  );
+  ).map((item) => ({
+    ...item,
+    label: translateTicketStatus(item.label as never, locale),
+  }));
 
   return (
     <div className="space-y-6">
       <div className="grid gap-4 xl:grid-cols-4">
-        <StatCard label="Active bookings" value={String(activeBookings)} change="Pending or approved reservations" />
-        <StatCard label="Waiting payment review" value={String(waitingPayments)} change="Proof uploaded and pending" tone="warning" />
-        <StatCard label="Favorite events" value={String(favoriteEvents)} change={`${reviewCount} reviews submitted`} tone="success" />
-        <StatCard label="Attended events" value={String(usedTickets)} change="Used tickets already checked in" />
+        <StatCard
+          label={t("dashboard.stats.activeBookings")}
+          value={String(activeBookings)}
+          change={t("dashboard.statChanges.pendingOrApproved")}
+        />
+        <StatCard
+          label={t("dashboard.stats.waitingPaymentReview")}
+          value={String(waitingPayments)}
+          change={t("dashboard.statChanges.proofUploaded")}
+          tone="warning"
+        />
+        <StatCard
+          label={t("dashboard.stats.favoriteEvents")}
+          value={String(favoriteEvents)}
+          change={t("dashboard.statChanges.reviewsSubmitted", { count: reviewCount })}
+          tone="success"
+        />
+        <StatCard
+          label={t("dashboard.stats.attendedEvents")}
+          value={String(usedTickets)}
+          change={t("dashboard.statChanges.usedTickets")}
+        />
       </div>
 
       <div className="grid gap-6 xl:grid-cols-2">
         <StatusPieChart
-          title="Booking status snapshot"
-          description="Your reservation pipeline from creation to approval."
+          title={t("dashboard.user.bookingSnapshot")}
+          description={t("dashboard.user.bookingSnapshotDescription")}
           data={bookingDistribution}
         />
         <StatusPieChart
-          title="Ticket status snapshot"
-          description="Issued tickets and check-in progress."
+          title={t("dashboard.user.ticketSnapshot")}
+          description={t("dashboard.user.ticketSnapshotDescription")}
           data={ticketDistribution}
         />
       </div>
@@ -103,12 +134,14 @@ export default async function UserDashboardPage() {
       <div className="grid gap-6 xl:grid-cols-2">
         <Card className="border border-black/5 bg-white/90">
           <CardHeader className="flex flex-row items-center justify-between gap-4">
-            <CardTitle className="font-heading text-2xl">Recent bookings</CardTitle>
+            <CardTitle className="font-heading text-2xl">
+              {t("dashboard.user.recentBookings")}
+            </CardTitle>
             <Link
               href="/dashboard/user/bookings"
               className={cn(buttonVariants({ size: "sm", variant: "outline" }))}
             >
-              View all
+              {t("common.viewAll")}
             </Link>
           </CardHeader>
           <CardContent className="space-y-3">
@@ -118,14 +151,14 @@ export default async function UserDashboardPage() {
                 className="rounded-3xl border border-black/5 bg-slate-50 p-4"
               >
                 <div className="flex flex-wrap items-center gap-2">
-                  <StatusBadge label={booking.status} tone="warning" />
-                  <StatusBadge label={booking.paymentStatus} tone="muted" />
+                  <StatusBadge label={translateBookingStatus(booking.status, locale)} tone="warning" />
+                  <StatusBadge label={translatePaymentStatus(booking.paymentStatus, locale)} tone="muted" />
                 </div>
                 <p className="mt-3 font-semibold text-slate-950">
                   {booking.event.title}
                 </p>
                 <p className="mt-1 text-sm text-muted-foreground">
-                  {booking.bookingCode} • {formatDateTime(booking.createdAt)}
+                  {booking.bookingCode} • {formatDateTime(booking.createdAt, locale)}
                 </p>
               </div>
             ))}
@@ -134,12 +167,14 @@ export default async function UserDashboardPage() {
 
         <Card className="border border-black/5 bg-white/90">
           <CardHeader className="flex flex-row items-center justify-between gap-4">
-            <CardTitle className="font-heading text-2xl">Recent tickets</CardTitle>
+            <CardTitle className="font-heading text-2xl">
+              {t("dashboard.user.recentTickets")}
+            </CardTitle>
             <Link
               href="/dashboard/user/tickets"
               className={cn(buttonVariants({ size: "sm", variant: "outline" }))}
             >
-              Open wallet
+              {t("dashboard.user.openWallet")}
             </Link>
           </CardHeader>
           <CardContent className="space-y-3">
@@ -150,7 +185,7 @@ export default async function UserDashboardPage() {
               >
                 <div className="flex flex-wrap items-center gap-2">
                   <StatusBadge
-                    label={ticket.status}
+                    label={translateTicketStatus(ticket.status, locale)}
                     tone={ticket.status === "VALID" ? "success" : "default"}
                   />
                   <StatusBadge label={ticket.ticketCode} tone="muted" />
@@ -159,7 +194,7 @@ export default async function UserDashboardPage() {
                   {ticket.event.title}
                 </p>
                 <p className="mt-1 text-sm text-muted-foreground">
-                  {formatDateTime(ticket.event.startDatetime)}
+                  {formatDateTime(ticket.event.startDatetime, locale)}
                 </p>
               </div>
             ))}

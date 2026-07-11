@@ -1,5 +1,11 @@
 import Link from "next/link";
-import { ArrowRight, CalendarCheck2, ChartColumn, ShieldCheck, Ticket } from "lucide-react";
+import {
+  ArrowRight,
+  CalendarCheck2,
+  ChartColumn,
+  ShieldCheck,
+  Ticket,
+} from "lucide-react";
 
 import { EventCard } from "@/components/eventra/event-card";
 import { MarketingShell } from "@/components/eventra/marketing-shell";
@@ -8,11 +14,13 @@ import { StatCard } from "@/components/eventra/stat-card";
 import { StatusBadge } from "@/components/eventra/status-badge";
 import { buttonVariants } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { getServerTranslator } from "@/lib/i18n/server";
 import { prisma } from "@/lib/prisma";
 import { getPublicEvents } from "@/lib/public-events";
 import { cn } from "@/lib/utils";
 
 export default async function Home() {
+  const { t } = await getServerTranslator();
   const [upcomingEvents, popularEvents, categories] = await Promise.all([
     getPublicEvents({ sort: "date" }),
     getPublicEvents({ sort: "popularity" }),
@@ -31,46 +39,45 @@ export default async function Home() {
     <MarketingShell>
       <section className="mx-auto grid max-w-7xl gap-12 px-4 pb-20 pt-16 sm:px-6 lg:grid-cols-[1.1fr_0.9fr] lg:px-8 lg:pt-20">
         <div className="space-y-8">
-          <StatusBadge label="Smart event operations" tone="warning" />
+          <StatusBadge label={t("marketing.heroBadge")} tone="warning" />
           <div className="space-y-5">
             <h1 className="max-w-3xl font-heading text-5xl font-semibold leading-[1.02] tracking-tight text-slate-950 sm:text-6xl">
-              Event ticketing with cleaner approvals, calmer ops, and better attendee trust.
+              {t("marketing.heroTitle")}
             </h1>
             <p className="max-w-2xl text-lg leading-8 text-slate-600">
-              Eventra helps campus organizations, communities, and modern event teams handle discovery,
-              approvals, QR tickets, manual payment verification, and check-in without the usual operational mess.
+              {t("marketing.heroDescription")}
             </p>
           </div>
           <div className="flex flex-col gap-3 sm:flex-row">
             <Link href="/events" className={cn(buttonVariants({ size: "lg" }))}>
-              Explore event catalog
+              {t("marketing.exploreCatalog")}
             </Link>
             <Link
               href="/register/organizer"
               className={cn(buttonVariants({ size: "lg", variant: "outline" }))}
             >
-              Apply as organizer
+              {t("marketing.applyAsOrganizer")}
             </Link>
           </div>
           <div className="grid gap-4 sm:grid-cols-3">
             <StatCard
-              label="Tickets issued"
+              label={t("marketing.ticketsIssued")}
               value="18.4K"
-              change="+22% month-over-month"
+              change={t("marketing.ticketsIssuedChange")}
               icon={<Ticket className="size-5" />}
               tone="success"
             />
             <StatCard
-              label="Organizer approvals"
+              label={t("marketing.organizerApprovals")}
               value="94%"
-              change="same-day response"
+              change={t("marketing.organizerApprovalsChange")}
               icon={<ShieldCheck className="size-5" />}
               tone="warning"
             />
             <StatCard
-              label="Check-in accuracy"
+              label={t("marketing.checkInAccuracy")}
               value="99.2%"
-              change="validated with QR"
+              change={t("marketing.checkInAccuracyChange")}
               icon={<CalendarCheck2 className="size-5" />}
             />
           </div>
@@ -82,49 +89,53 @@ export default async function Home() {
           <Card className="relative overflow-hidden border border-white/70 bg-white/90 shadow-[0_30px_120px_rgba(35,25,66,0.16)]">
             <div className="bg-[linear-gradient(135deg,#231942_0%,#d46d42_46%,#ffcb69_100%)] p-7 text-white">
               <div className="inline-flex items-center gap-2 rounded-full bg-white/15 px-3 py-1 text-xs font-semibold uppercase tracking-[0.28em] backdrop-blur">
-                Platform snapshot
+                {t("marketing.platformSnapshot")}
               </div>
               <h2 className="mt-6 font-heading text-3xl font-semibold">
-                Approvals, tickets, and attendee confidence in one flow.
+                {t("marketing.approvalsTitle")}
               </h2>
               <p className="mt-4 max-w-md text-sm leading-6 text-white/80">
-                Free bookings can auto-approve. Paid and cash-on-venue reservations stay tightly verified before ticket issuance.
+                {t("marketing.approvalsFlowDescription")}
               </p>
             </div>
             <CardContent className="grid gap-4 p-7 md:grid-cols-2">
               <div className="rounded-3xl border border-black/5 bg-slate-50 p-5">
                 <p className="text-xs font-semibold uppercase tracking-[0.28em] text-muted-foreground">
-                  Admin lens
+                  {t("marketing.adminLens")}
                 </p>
-                <p className="mt-3 font-heading text-2xl font-semibold">Revenue, moderation, approvals</p>
+                <p className="mt-3 font-heading text-2xl font-semibold">
+                  {t("marketing.adminLensTitle")}
+                </p>
                 <p className="mt-2 text-sm leading-6 text-muted-foreground">
-                  Keep organizer onboarding, payment review, and reporting aligned from one dashboard.
+                  {t("marketing.adminLensDescription")}
                 </p>
               </div>
               <div className="rounded-3xl border border-black/5 bg-slate-50 p-5">
                 <p className="text-xs font-semibold uppercase tracking-[0.28em] text-muted-foreground">
-                  Organizer lens
+                  {t("marketing.organizerLens")}
                 </p>
-                <p className="mt-3 font-heading text-2xl font-semibold">Publish, verify, check in</p>
+                <p className="mt-3 font-heading text-2xl font-semibold">
+                  {t("marketing.organizerLensTitle")}
+                </p>
                 <p className="mt-2 text-sm leading-6 text-muted-foreground">
-                  Manage event inventory, attendee approvals, manual payments, and live entry validation.
+                  {t("marketing.organizerLensDescription")}
                 </p>
               </div>
               <div className="rounded-3xl border border-black/5 bg-slate-50 p-5 md:col-span-2">
                 <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                   <div>
                     <p className="text-xs font-semibold uppercase tracking-[0.28em] text-muted-foreground">
-                      Attendee experience
+                      {t("marketing.attendeeExperience")}
                     </p>
                     <p className="mt-3 font-heading text-2xl font-semibold">
-                      Discover events, reserve seats, and carry QR tickets.
+                      {t("marketing.attendeeExperienceTitle")}
                     </p>
                   </div>
                   <Link
                     href="/dashboard/user"
                     className={cn(buttonVariants({ variant: "outline" }))}
                   >
-                    Preview user workspace
+                    {t("marketing.previewUserWorkspace")}
                     <ArrowRight className="size-4" />
                   </Link>
                 </div>
@@ -136,9 +147,9 @@ export default async function Home() {
 
       <section className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
         <SectionHeading
-          eyebrow="Category map"
-          title="Built for the kinds of events teams actually run"
-          description="Eventra fits fast-moving student programs, independent communities, and public-facing small events that need approvals, limited quotas, and dependable check-in."
+          eyebrow={t("marketing.categoryMap")}
+          title={t("marketing.categoryMapTitle")}
+          description={t("marketing.categoryMapDescription")}
         />
         <div className="mt-8 grid gap-4 lg:grid-cols-4">
           {categories.map((category) => (
@@ -164,15 +175,15 @@ export default async function Home() {
 
       <section className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
         <SectionHeading
-          eyebrow="Featured listings"
-          title="Discovery that still feels curated"
-          description="Organizers get polished public listings, while attendees see events with clean details, pricing signals, and transparent approval expectations."
+          eyebrow={t("marketing.featuredListings")}
+          title={t("marketing.featuredListingsTitle")}
+          description={t("marketing.featuredListingsDescription")}
           action={
             <Link
               href="/events"
               className={cn(buttonVariants({ variant: "outline" }))}
             >
-              Browse all events
+              {t("marketing.browseAllEvents")}
             </Link>
           }
         />
@@ -190,17 +201,17 @@ export default async function Home() {
               <div className="flex items-center justify-between gap-4">
                 <div>
                   <p className="text-xs font-semibold uppercase tracking-[0.28em] text-[#d46d42]">
-                    Upcoming
+                    {t("marketing.upcoming")}
                   </p>
                   <h3 className="mt-2 font-heading text-2xl font-semibold text-slate-950">
-                    Soonest public events
+                    {t("marketing.upcomingTitle")}
                   </h3>
                 </div>
                 <Link
                   href="/events?sort=date"
                   className={cn(buttonVariants({ variant: "outline", size: "sm" }))}
                 >
-                  View all
+                  {t("common.viewAll")}
                 </Link>
               </div>
               <div className="space-y-3">
@@ -220,17 +231,17 @@ export default async function Home() {
               <div className="flex items-center justify-between gap-4">
                 <div>
                   <p className="text-xs font-semibold uppercase tracking-[0.28em] text-[#d46d42]">
-                    Popular
+                    {t("marketing.popular")}
                   </p>
                   <h3 className="mt-2 font-heading text-2xl font-semibold text-slate-950">
-                    Highest demand right now
+                    {t("marketing.popularTitle")}
                   </h3>
                 </div>
                 <Link
                   href="/events?sort=popularity"
                   className={cn(buttonVariants({ variant: "outline", size: "sm" }))}
                 >
-                  Explore
+                  {t("common.explore")}
                 </Link>
               </div>
               <div className="space-y-3">
@@ -252,35 +263,34 @@ export default async function Home() {
         <Card className="overflow-hidden border border-white/70 bg-slate-950 text-white shadow-[0_30px_120px_rgba(15,23,42,0.28)]">
           <CardContent className="grid gap-10 p-8 lg:grid-cols-[1fr_0.9fr] lg:p-10">
             <div className="space-y-4">
-              <StatusBadge label="Dashboard ready" tone="warning" />
+              <StatusBadge label={t("marketing.dashboardReady")} tone="warning" />
               <h2 className="font-heading text-4xl font-semibold tracking-tight">
-                Professional enough for organizers, simple enough for attendees.
+                {t("marketing.dashboardReadyTitle")}
               </h2>
               <p className="max-w-2xl text-sm leading-7 text-white/75 sm:text-base">
-                Eventra&apos;s dashboard system is purpose-built for role-based workflows: admin governance,
-                organizer execution, and user self-service, each with a clear visual hierarchy and operational focus.
+                {t("marketing.dashboardReadyDescription")}
               </p>
             </div>
             <div className="grid gap-4 sm:grid-cols-2">
               <MiniFeature
                 icon={<ChartColumn className="size-5" />}
-                title="Analytics"
-                description="Revenue, bookings, check-in, top events, and role-scoped reports."
+                title={t("marketing.analytics")}
+                description={t("marketing.analyticsDescription")}
               />
               <MiniFeature
                 icon={<ShieldCheck className="size-5" />}
-                title="Approvals"
-                description="Organizer verification, manual payment review, and quota-safe ticket issuance."
+                title={t("marketing.approvals")}
+                description={t("marketing.approvalsDescription")}
               />
               <MiniFeature
                 icon={<Ticket className="size-5" />}
-                title="Tickets"
-                description="QR payload-based e-tickets with no stored QR image blob in the database."
+                title={t("marketing.tickets")}
+                description={t("marketing.ticketsDescription")}
               />
               <MiniFeature
                 icon={<CalendarCheck2 className="size-5" />}
-                title="Check-in"
-                description="Organizer and admin validation with duplicate-use protection."
+                title={t("marketing.checkIn")}
+                description={t("marketing.checkInDescription")}
               />
             </div>
           </CardContent>

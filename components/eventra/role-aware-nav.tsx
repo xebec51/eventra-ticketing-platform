@@ -3,6 +3,7 @@
 import Link from "next/link";
 
 import { sharedDashboardNav, roleDashboardNav } from "@/lib/navigation";
+import { useI18n } from "@/lib/i18n/use-i18n";
 import type { UserRole } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
@@ -13,12 +14,13 @@ type RoleAwareNavProps = {
 
 export function RoleAwareNav({ role, pathname }: RoleAwareNavProps) {
   const navItems = [...sharedDashboardNav, ...roleDashboardNav[role]];
+  const { t } = useI18n();
 
   return (
     <div className="space-y-6">
       <div>
         <p className="px-3 text-xs font-semibold uppercase tracking-[0.28em] text-muted-foreground">
-          Shared
+          {t("nav.shared")}
         </p>
         <nav className="mt-3 space-y-1">
           {sharedDashboardNav.map((item) => {
@@ -36,7 +38,7 @@ export function RoleAwareNav({ role, pathname }: RoleAwareNavProps) {
                 )}
               >
                 <item.icon className="size-4" />
-                {item.label}
+                {t(item.labelKey)}
               </Link>
             );
           })}
@@ -45,7 +47,11 @@ export function RoleAwareNav({ role, pathname }: RoleAwareNavProps) {
 
       <div>
         <p className="px-3 text-xs font-semibold uppercase tracking-[0.28em] text-muted-foreground">
-          {role.toLowerCase()} workspace
+          {role === "ADMIN"
+            ? t("nav.adminWorkspace")
+            : role === "ORGANIZER"
+              ? t("nav.organizerWorkspace")
+              : t("nav.userWorkspace")}
         </p>
         <nav className="mt-3 space-y-1">
           {navItems.slice(sharedDashboardNav.length).map((item) => {
@@ -63,7 +69,7 @@ export function RoleAwareNav({ role, pathname }: RoleAwareNavProps) {
                 )}
               >
                 <item.icon className="size-4" />
-                {item.label}
+                {t(item.labelKey)}
               </Link>
             );
           })}

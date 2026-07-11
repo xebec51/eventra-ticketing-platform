@@ -4,9 +4,11 @@ import { MarketingShell } from "@/components/eventra/marketing-shell";
 import { RegisterForm } from "@/components/eventra/register-form";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { redirectAuthenticatedUser } from "@/lib/auth";
+import { getServerTranslator } from "@/lib/i18n/server";
 
 export default async function RegisterPage() {
   await redirectAuthenticatedUser();
+  const { t } = await getServerTranslator();
 
   return (
     <MarketingShell>
@@ -14,22 +16,21 @@ export default async function RegisterPage() {
         <Card className="border border-black/5 bg-white/92 shadow-[0_24px_70px_rgba(15,23,42,0.08)]">
           <CardHeader>
             <CardTitle className="font-heading text-3xl">
-              Create attendee account
+              {t("auth.registerTitle")}
             </CardTitle>
             <p className="text-sm leading-6 text-muted-foreground">
-              Register to browse favorites, reserve tickets, upload payment
-              proofs, and access QR tickets after approval.
+              {t("auth.registerDescription")}
             </p>
           </CardHeader>
           <CardContent className="space-y-5">
             <RegisterForm />
             <p className="text-sm text-muted-foreground">
-              Want to host events instead?{" "}
+              {t("auth.hostEventsInstead")}{" "}
               <Link
                 href="/register/organizer"
                 className="font-medium text-slate-950 underline-offset-4 hover:underline"
               >
-                Apply as an organizer
+                {t("auth.applyOrganizer")}
               </Link>
             </p>
           </CardContent>

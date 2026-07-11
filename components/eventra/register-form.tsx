@@ -8,6 +8,7 @@ import {
 } from "@/app/actions/auth";
 import { AuthSubmitButton } from "@/components/eventra/auth-submit-button";
 import { Input } from "@/components/ui/input";
+import { useI18n } from "@/lib/i18n/use-i18n";
 import { Label } from "@/components/ui/label";
 
 const initialState: AuthFormState = {};
@@ -26,6 +27,7 @@ function FieldError({
 
 export function RegisterForm() {
   const [state, action] = useActionState(registerUserAction, initialState);
+  const { t } = useI18n();
 
   return (
     <form action={action} className="grid gap-5 sm:grid-cols-2">
@@ -35,12 +37,12 @@ export function RegisterForm() {
         </div>
       ) : null}
       <div className="space-y-2 sm:col-span-2">
-        <Label htmlFor="name">Full name</Label>
+        <Label htmlFor="name">{t("auth.fullName")}</Label>
         <Input id="name" name="name" placeholder="Alya Setiawan" className="h-11 border-black/10" />
         <FieldError message={state.errors?.name} />
       </div>
       <div className="space-y-2">
-        <Label htmlFor="register-email">Email</Label>
+        <Label htmlFor="register-email">{t("auth.email")}</Label>
         <Input
           id="register-email"
           name="email"
@@ -51,35 +53,35 @@ export function RegisterForm() {
         <FieldError message={state.errors?.email} />
       </div>
       <div className="space-y-2">
-        <Label htmlFor="phone">Phone</Label>
+        <Label htmlFor="phone">{t("auth.phone")}</Label>
         <Input id="phone" name="phone" placeholder="+65 8123 4567" className="h-11 border-black/10" />
         <FieldError message={state.errors?.phone} />
       </div>
       <div className="space-y-2">
-        <Label htmlFor="password">Password</Label>
+        <Label htmlFor="password">{t("auth.password")}</Label>
         <Input
           id="password"
           name="password"
           type="password"
-          placeholder="Create a strong password"
+          placeholder={t("auth.createStrongPassword")}
           className="h-11 border-black/10"
         />
         <FieldError message={state.errors?.password} />
       </div>
       <div className="space-y-2">
-        <Label htmlFor="confirm-password">Confirm password</Label>
+        <Label htmlFor="confirm-password">{t("auth.confirmPassword")}</Label>
         <Input
           id="confirm-password"
           name="confirmPassword"
           type="password"
-          placeholder="Repeat password"
+          placeholder={t("auth.repeatPassword")}
           className="h-11 border-black/10"
         />
         <FieldError message={state.errors?.confirmPassword} />
       </div>
       <div className="sm:col-span-2">
-        <AuthSubmitButton loadingLabel="Creating account...">
-          Create account
+        <AuthSubmitButton loadingLabel={t("auth.creatingAccount")}>
+          {t("auth.createAccount")}
         </AuthSubmitButton>
       </div>
     </form>

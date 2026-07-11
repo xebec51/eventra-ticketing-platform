@@ -8,15 +8,17 @@ import {
   BOOKING_STATUS_ORDER,
   PAYMENT_STATUS_ORDER,
   buildDistribution,
-  prettyLabel,
   toCountRecord,
 } from "@/lib/analytics";
 import { requireRole } from "@/lib/auth";
 import { formatCurrency } from "@/lib/formatters";
+import { getServerTranslator } from "@/lib/i18n/server";
+import { translateBookingStatus, translatePaymentStatus } from "@/lib/i18n/status";
 import { prisma } from "@/lib/prisma";
 
 export default async function OrganizerDashboardPage() {
   const user = await requireRole("ORGANIZER");
+  const { locale, t } = await getServerTranslator();
   const organizerProfile = await prisma.organizerProfile.findUnique({
     where: { userId: user.id },
     select: { id: true },
@@ -151,11 +153,17 @@ export default async function OrganizerDashboardPage() {
   const bookingDistribution = buildDistribution(
     BOOKING_STATUS_ORDER,
     toCountRecord(bookingGroups, "status")
-  );
+  ).map((item) => ({
+    ...item,
+    label: translateBookingStatus(item.label as never, locale),
+  }));
   const paymentDistribution = buildDistribution(
     PAYMENT_STATUS_ORDER,
     toCountRecord(paymentGroups, "paymentStatus")
-  );
+  ).map((item) => ({
+    ...item,
+    label: translatePaymentStatus(item.label as never, locale),
+  }));
   const topTicketTypes = sortedTicketTypeGroups.map((group) => ({
     label: ticketTypeNameMap.get(group.ticketTypeId) ?? group.ticketTypeId,
     value: group._count._all,
@@ -169,41 +177,66 @@ export default async function OrganizerDashboardPage() {
   return (
     <div className="space-y-6">
       <div className="grid gap-4 xl:grid-cols-4">
-        <StatCard label="My events" value={String(totalEvents)} change={`${upcomingEvents} upcoming events`} />
-        <StatCard label="Pending bookings" value={String(pendingBookings)} change={`${waitingConfirmations} waiting confirmations`} tone="warning" />
-        <StatCard label="Tickets sold" value={String(ticketCount)} change={`${checkInRate}% check-in rate`} tone="success" />
-        <StatCard label="Revenue" value={formatCurrency(revenue)} change={`${(ratingAggregate._avg.rating ?? 0).toFixed(1)} average rating`} tone="success" />
+        <StatCard
+          label={t("dashboard.stats.myEvents")}
+          value={String(totalEvents)}
+          change={t("dashboard.statChanges.upcomingEvents", { count: upcomingEvents })}
+        />
+        <StatCard
+          label={t("dashboard.stats.pendingBookings")}
+          value={String(pendingBookings)}
+          change={t("dashboard.statChanges.waitingConfirmations", {
+            count: waitingConfirmations,
+          })}
+          tone="warning"
+        />
+        <StatCard
+          label={t("dashboard.stats.ticketsSold")}
+          value={String(ticketCount)}
+          change={t("dashboard.statChanges.checkInRate", { rate: checkInRate })}
+          tone="success"
+        />
+        <StatCard
+          label={t("dashboard.stats.revenue")}
+          value={formatCurrency(revenue, locale)}
+          change={t("dashboard.statChanges.averageRating", {
+            rating: (ratingAggregate._avg.rating ?? 0).toFixed(1),
+          })}
+          tone="success"
+        />
       </div>
 
       <div className="grid gap-6 xl:grid-cols-2">
         <StatusPieChart
-          title="Booking distribution"
-          description="Current booking mix across all your events."
+          title={t("dashboard.organizer.bookingDistribution")}
+          description={t("dashboard.organizer.bookingDistributionDescription")}
           data={bookingDistribution}
         />
         <StatusPieChart
-          title="Payment distribution"
-          description="Manual payment states requiring organizer attention."
+          title={t("dashboard.organizer.paymentDistribution")}
+          description={t("dashboard.organizer.paymentDistributionDescription")}
           data={paymentDistribution}
         />
       </div>
 
       <div className="grid gap-6 xl:grid-cols-2">
         <MetricBarChart
-          title="Top ticket types"
-          description="Most-issued ticket tiers across your event portfolio."
+          title={t("dashboard.organizer.topTicketTypes")}
+          description={t("dashboard.organizer.topTicketTypesDescription")}
           data={topTicketTypes}
         />
         <MetricBarChart
-          title="Revenue by event"
-          description="Paid booking revenue per event."
+          title={t("dashboard.organizer.revenueByEvent")}
+          description={t("dashboard.organizer.revenueByEventDescription")}
           data={topEventsByRevenue}
         />
       </div>
 
       <Card className="border border-black/5 bg-white/90">
         <CardHeader>
-          <CardTitle className="font-heading text-2xl">Recent bookings</CardTitle>
+          <CardTitle className="font-heading text-2xl">
+            {t("dashboard.organizer.recentBookings")}
+          </CardTitle>
         </CardHeader>
         <CardContent className="space-y-3">
           {recentBookings.map((booking) => (
@@ -213,14 +246,17 @@ export default async function OrganizerDashboardPage() {
             >
               <div>
                 <div className="flex flex-wrap items-center gap-2">
-                  <StatusBadge label={prettyLabel(booking.status)} tone="warning" />
+                  <StatusBadge
+                    label={translateBookingStatus(booking.status, locale)}
+                    tone="warning"
+                  />
                   <StatusBadge label={booking.bookingCode} tone="muted" />
                 </div>
                 <p className="mt-3 font-semibold text-slate-950">
                   {booking.event.title}
                 </p>
                 <p className="mt-1 text-sm text-muted-foreground">
-                  {booking.user.name} • {formatCurrency(booking.totalAmount.toNumber())}
+                  {booking.user.name} • {formatCurrency(booking.totalAmount.toNumber(), locale)}
                 </p>
               </div>
             </div>

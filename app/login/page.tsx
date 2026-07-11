@@ -6,9 +6,11 @@ import { MarketingShell } from "@/components/eventra/marketing-shell";
 import { StatusBadge } from "@/components/eventra/status-badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { redirectAuthenticatedUser } from "@/lib/auth";
+import { getServerTranslator } from "@/lib/i18n/server";
 
 export default async function LoginPage() {
   await redirectAuthenticatedUser();
+  const { t } = await getServerTranslator();
 
   return (
     <MarketingShell>
@@ -16,22 +18,21 @@ export default async function LoginPage() {
         <div className="grid gap-8 lg:grid-cols-[1fr_0.9fr]">
           <Card className="border border-black/5 bg-slate-950 text-white shadow-[0_28px_100px_rgba(15,23,42,0.28)]">
             <CardContent className="space-y-6 p-8 lg:p-10">
-              <StatusBadge label="Secure access" tone="warning" />
+              <StatusBadge label={t("auth.secureAccess")} tone="warning" />
               <h1 className="font-heading text-4xl font-semibold tracking-tight">
-                Sign in to manage bookings, approvals, and QR tickets.
+                {t("auth.loginTitle")}
               </h1>
               <p className="max-w-2xl text-sm leading-7 text-white/75 sm:text-base">
-                Eventra&apos;s auth layer uses credentials login with role-aware
-                redirects for admins, organizers, and attendees.
+                {t("auth.loginDescription")}
               </p>
               <div className="grid gap-4 sm:grid-cols-2">
                 <FeatureMessage
-                  title="Fast credentials login"
-                  description="Only the fields required for auth are selected on sign-in."
+                  title={t("auth.fastCredentialsLogin")}
+                  description={t("auth.fastCredentialsLoginDescription")}
                 />
                 <FeatureMessage
-                  title="Protected routes"
-                  description="Dashboard routes redirect guests, and organizer status gates stay explicit."
+                  title={t("auth.protectedRoutes")}
+                  description={t("auth.protectedRoutesDescription")}
                 />
               </div>
             </CardContent>
@@ -43,7 +44,7 @@ export default async function LoginPage() {
                 <LockKeyhole className="size-5" />
               </div>
               <CardTitle className="pt-3 font-heading text-3xl">
-                Welcome back
+                {t("auth.welcomeBack")}
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-5">
@@ -52,18 +53,17 @@ export default async function LoginPage() {
                 <div className="flex items-start gap-3">
                   <ShieldCheck className="mt-0.5 size-4 shrink-0" />
                   <p>
-                    Demo accounts are live. Use `Password123!` for every seeded
-                    admin, organizer, and user account.
+                    {t("auth.demoAccounts")}
                   </p>
                 </div>
               </div>
               <p className="text-sm text-muted-foreground">
-                Need an account?{" "}
+                {t("auth.needAccount")}{" "}
                 <Link
                   href="/register"
                   className="font-medium text-slate-950 underline-offset-4 hover:underline"
                 >
-                  Register as attendee
+                  {t("auth.registerAsAttendee")}
                 </Link>
               </p>
             </CardContent>

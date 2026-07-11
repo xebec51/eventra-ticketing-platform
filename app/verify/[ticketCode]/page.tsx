@@ -5,6 +5,11 @@ import { MarketingShell } from "@/components/eventra/marketing-shell";
 import { StatusBadge } from "@/components/eventra/status-badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { formatDateTime } from "@/lib/formatters";
+import { getServerTranslator } from "@/lib/i18n/server";
+import {
+  translateBookingStatus,
+  translateTicketStatus,
+} from "@/lib/i18n/status";
 import { prisma } from "@/lib/prisma";
 
 export default async function VerifyTicketPage({
@@ -13,6 +18,7 @@ export default async function VerifyTicketPage({
   params: Promise<{ ticketCode: string }>;
 }) {
   const { ticketCode } = await params;
+  const { locale, t } = await getServerTranslator();
   const ticket = await prisma.ticket.findUnique({
     where: { ticketCode: ticketCode.toUpperCase() },
     include: {
@@ -64,11 +70,10 @@ export default async function VerifyTicketPage({
               <QrCode className="size-6" />
             </div>
             <h1 className="mt-5 font-heading text-4xl font-semibold tracking-tight">
-              Ticket verification
+              {t("nav.verifyTicket")}
             </h1>
             <p className="mt-3 max-w-2xl text-sm leading-7 text-white/80">
-              Public verification confirms whether a ticket belongs to an
-              approved booking and whether it is still eligible for entry.
+              Public verification confirms whether a ticket belongs to an approved booking and whether it is still eligible for entry.
             </p>
           </div>
           <CardHeader>
@@ -79,17 +84,17 @@ export default async function VerifyTicketPage({
           <CardContent className="grid gap-4 md:grid-cols-3">
             <VerificationBlock
               title="Status"
-              badge={<StatusBadge label={ticket.status} tone={statusTone} />}
+              badge={<StatusBadge label={translateTicketStatus(ticket.status, locale)} tone={statusTone} />}
             />
             <VerificationBlock
               title="Booking"
-              badge={<StatusBadge label={ticket.booking.status} tone="default" />}
+              badge={<StatusBadge label={translateBookingStatus(ticket.booking.status, locale)} tone="default" />}
             />
             <VerificationBlock
               title="Check-in"
               badge={
                 <StatusBadge
-                  label={ticket.checkedInAt ? "Already used" : "Ready for entry"}
+                  label={ticket.checkedInAt ? translateTicketStatus("USED", locale) : "Ready for entry"}
                   tone={ticket.checkedInAt ? "default" : "success"}
                 />
               }
@@ -107,7 +112,7 @@ export default async function VerifyTicketPage({
                 <VerificationDetail label="Event" value={ticket.event.title} />
                 <VerificationDetail
                   label="Schedule"
-                  value={formatDateTime(ticket.event.startDatetime)}
+                  value={formatDateTime(ticket.event.startDatetime, locale)}
                 />
                 <VerificationDetail
                   label="Venue"
@@ -125,7 +130,7 @@ export default async function VerifyTicketPage({
                   label="Checked in at"
                   value={
                     ticket.checkedInAt
-                      ? formatDateTime(ticket.checkedInAt)
+                      ? formatDateTime(ticket.checkedInAt, locale)
                       : "Not checked in yet"
                   }
                 />

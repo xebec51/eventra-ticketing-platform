@@ -10,12 +10,13 @@ import { StatusBadge } from "@/components/eventra/status-badge";
 import { buttonVariants } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { getSessionUser } from "@/lib/auth";
+import { getServerTranslator } from "@/lib/i18n/server";
 import { formatCurrency, formatDateTime } from "@/lib/formatters";
 import { prisma } from "@/lib/prisma";
 import { cn } from "@/lib/utils";
 
-function formatEventDateRange(start: Date, end: Date) {
-  const formatter = new Intl.DateTimeFormat("en-SG", {
+function formatEventDateRange(start: Date, end: Date, locale: "en" | "id") {
+  const formatter = new Intl.DateTimeFormat(locale === "id" ? "id-ID" : "en-US", {
     day: "2-digit",
     month: "short",
     year: "numeric",
@@ -32,6 +33,7 @@ export default async function EventDetailPage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
+  const { locale, t } = await getServerTranslator();
   const [user, event] = await Promise.all([
     getSessionUser(),
     prisma.event.findFirst({
@@ -107,8 +109,8 @@ export default async function EventDetailPage({
       available,
       salesWindowLabel:
         ticketType.salesStartAt || ticketType.salesEndAt
-          ? `Sales ${ticketType.salesStartAt ? formatDateTime(ticketType.salesStartAt) : "now"}${
-              ticketType.salesEndAt ? ` to ${formatDateTime(ticketType.salesEndAt)}` : ""
+          ? `Sales ${ticketType.salesStartAt ? formatDateTime(ticketType.salesStartAt, locale) : "now"}${
+              ticketType.salesEndAt ? ` to ${formatDateTime(ticketType.salesEndAt, locale)}` : ""
             }`
           : null,
     };
@@ -137,18 +139,18 @@ export default async function EventDetailPage({
           <div className="mt-8 grid gap-4 text-sm sm:grid-cols-2 xl:grid-cols-4">
             <InfoPill
               icon={<CalendarDays className="size-4" />}
-              label={formatEventDateRange(event.startDatetime, event.endDatetime)}
+              label={formatEventDateRange(event.startDatetime, event.endDatetime, locale)}
             />
             <InfoPill icon={<MapPin className="size-4" />} label={event.locationName} />
             <InfoPill
               icon={<Star className="size-4" />}
-              label={`${averageRating.toFixed(1)} average rating`}
+              label={`${averageRating.toFixed(1)} ${t("events.ratingSuffix")}`}
             />
             <InfoPill
               icon={<Ticket className="size-4" />}
               label={
                 event.ticketTypes.length
-                  ? `From $${event.ticketTypes[0].price.toString()}`
+                  ? formatCurrency(event.ticketTypes[0].price.toString(), locale)
                   : "Free"
               }
             />
@@ -157,11 +159,11 @@ export default async function EventDetailPage({
 
         <div className="mt-8 grid gap-6 xl:grid-cols-[1.15fr_0.85fr]">
           <Card className="border border-black/5 bg-white/90">
-            <CardHeader>
-              <CardTitle className="font-heading text-2xl">
-                Event overview
-              </CardTitle>
-            </CardHeader>
+              <CardHeader>
+                <CardTitle className="font-heading text-2xl">
+                {t("nav.overview")}
+                </CardTitle>
+              </CardHeader>
             <CardContent className="space-y-6 text-sm leading-7 text-muted-foreground">
               <p>
                 Hosted by {event.organizerProfile.organizationName}, this public
@@ -198,9 +200,9 @@ export default async function EventDetailPage({
                     >
                       <div className="flex items-center justify-between gap-4">
                         <p className="font-semibold text-slate-900">
-                          {review.user.name}
-                        </p>
-                        <StatusBadge label={`${review.rating}/5`} tone="warning" />
+                        {review.user.name}
+                      </p>
+                      <StatusBadge label={`${review.rating}/5`} tone="warning" />
                       </div>
                       <p className="mt-2 text-sm leading-6 text-muted-foreground">
                         {review.comment || "No written comment provided."}
@@ -269,7 +271,7 @@ export default async function EventDetailPage({
                     href={user ? "/dashboard" : "/login"}
                     className={cn(buttonVariants({ size: "lg" }), "w-full")}
                   >
-                    {user ? "Open your dashboard" : "Sign in to book"}
+                    {user ? t("nav.openDashboard") : t("auth.signIn")}
                   </Link>
                 )}
               </CardContent>

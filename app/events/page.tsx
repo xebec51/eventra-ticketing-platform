@@ -3,6 +3,7 @@ import { EmptyState } from "@/components/eventra/empty-state";
 import { EventFilters } from "@/components/eventra/event-filters";
 import { MarketingShell } from "@/components/eventra/marketing-shell";
 import { SectionHeading } from "@/components/eventra/section-heading";
+import { getServerTranslator } from "@/lib/i18n/server";
 import { prisma } from "@/lib/prisma";
 import { getPublicEvents } from "@/lib/public-events";
 
@@ -17,6 +18,7 @@ export default async function EventsPage({
   }>;
 }) {
   const { q, category, city, sort } = await searchParams;
+  const { t } = await getServerTranslator();
   const events = await getPublicEvents({
     query: q,
     category: category === "all" ? undefined : category,
@@ -43,9 +45,9 @@ export default async function EventsPage({
     <MarketingShell>
       <section className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
         <SectionHeading
-          eyebrow="Event catalog"
-          title="Find the right event, fast"
-          description="Search, filter, and sort live public listings across categories, cities, and pricing styles."
+          eyebrow={t("events.catalogEyebrow")}
+          title={t("events.catalogTitle")}
+          description={t("events.catalogDescription")}
         />
         <div className="mt-8">
           <EventFilters
@@ -66,8 +68,8 @@ export default async function EventsPage({
         ) : (
           <div className="mt-8">
             <EmptyState
-              title="No events matched those filters"
-              description="Try a different keyword, category, or city to broaden the public catalog results."
+              title={t("events.noResultsTitle")}
+              description={t("events.noResultsDescription")}
             />
           </div>
         )}

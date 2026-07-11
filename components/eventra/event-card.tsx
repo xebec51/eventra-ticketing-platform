@@ -1,21 +1,19 @@
+"use client";
+
 import Link from "next/link";
 import { CalendarDays, Heart, MapPin, Star } from "lucide-react";
 
 import { StatusBadge } from "@/components/eventra/status-badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { buttonVariants } from "@/components/ui/button";
+import { formatI18nShortDate } from "@/lib/i18n/formatters";
+import { useI18n } from "@/lib/i18n/use-i18n";
 import { cn } from "@/lib/utils";
 import type { EventSummary } from "@/lib/types";
 
-function formatEventDate(value: string) {
-  return new Intl.DateTimeFormat("en-SG", {
-    day: "2-digit",
-    month: "short",
-    year: "numeric",
-  }).format(new Date(value));
-}
-
 export function EventCard({ event }: { event: EventSummary }) {
+  const { locale, t } = useI18n();
+
   return (
     <Card className="overflow-hidden border border-black/5 bg-white/90 shadow-[0_20px_60px_rgba(15,23,42,0.07)]">
       <div className={cn("h-52 bg-gradient-to-br", event.imageAccent)}>
@@ -44,7 +42,7 @@ export function EventCard({ event }: { event: EventSummary }) {
         <div className="grid gap-3 text-sm text-slate-600 sm:grid-cols-2">
           <div className="inline-flex items-center gap-2">
             <CalendarDays className="size-4 text-[#d46d42]" />
-            {formatEventDate(event.startDate)}
+            {formatI18nShortDate(event.startDate, locale)}
           </div>
           <div className="inline-flex items-center gap-2">
             <MapPin className="size-4 text-[#d46d42]" />
@@ -52,27 +50,27 @@ export function EventCard({ event }: { event: EventSummary }) {
           </div>
           <div className="inline-flex items-center gap-2">
             <Star className="size-4 text-[#d46d42]" />
-            {event.rating.toFixed(1)} rating
+            {event.rating.toFixed(1)} {t("events.ratingSuffix")}
           </div>
           <div className="inline-flex items-center gap-2">
             <span className="font-semibold text-slate-900">{event.priceLabel}</span>
-            <span className="text-muted-foreground">starting price</span>
+            <span className="text-muted-foreground">{t("events.startingPrice")}</span>
           </div>
         </div>
         <div className="flex items-center justify-between border-t border-black/5 pt-4">
           <div>
             <p className="text-sm font-semibold text-slate-900">
-              {event.attendees.toLocaleString()} attendees
+              {event.attendees.toLocaleString(locale === "id" ? "id-ID" : "en-US")} {t("events.attendees")}
             </p>
             <p className="text-xs text-muted-foreground">
-              Public listing and manual approval-ready flow
+              {t("events.listingReady")}
             </p>
           </div>
           <Link
             href={`/events/${event.slug}`}
             className={cn(buttonVariants({ size: "sm" }))}
-          >
-            View detail
+        >
+            {t("events.viewDetail")}
           </Link>
         </div>
       </CardContent>

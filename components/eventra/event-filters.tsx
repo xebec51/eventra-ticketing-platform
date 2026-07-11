@@ -1,8 +1,11 @@
+"use client";
+
 import { Search } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
+import { useI18n } from "@/lib/i18n/use-i18n";
 
 export function EventFilters({
   query,
@@ -19,6 +22,8 @@ export function EventFilters({
   categories: { id: string; slug: string; name: string }[];
   cities: string[];
 }) {
+  const { t } = useI18n();
+
   return (
     <Card className="border border-black/5 bg-white/90">
       <CardContent>
@@ -31,7 +36,7 @@ export function EventFilters({
           <Input
             defaultValue={query}
             name="q"
-            placeholder="Search by event title, organizer, or topic"
+            placeholder={t("events.searchPlaceholder")}
             className="h-11 border-black/10 pl-10"
           />
         </div>
@@ -40,7 +45,7 @@ export function EventFilters({
           defaultValue={category || "all"}
           name="category"
         >
-          <option value="all">All categories</option>
+          <option value="all">{t("events.allCategories")}</option>
           {categories.map((categoryOption) => (
             <option key={categoryOption.id} value={categoryOption.slug}>
               {categoryOption.name}
@@ -52,7 +57,7 @@ export function EventFilters({
           defaultValue={city || "all"}
           name="city"
         >
-          <option value="all">All cities</option>
+          <option value="all">{t("events.allCities")}</option>
           {cities.map((cityName) => (
             <option key={cityName} value={cityName}>
               {cityName}
@@ -64,12 +69,12 @@ export function EventFilters({
           defaultValue={sort || "date"}
           name="sort"
         >
-          <option value="date">Sort by date</option>
-          <option value="price">Sort by price</option>
-          <option value="popularity">Sort by popularity</option>
+          <option value="date">{t("events.sortByDate")}</option>
+          <option value="price">{t("events.sortByPrice")}</option>
+          <option value="popularity">{t("events.sortByPopularity")}</option>
         </select>
           <Button className="h-11" type="submit">
-            Apply
+            {t("common.apply")}
           </Button>
         </form>
       </CardContent>

@@ -5,6 +5,7 @@ import { ShieldCheck } from "lucide-react";
 import { EventraLogo } from "@/components/eventra/logo";
 import { RoleAwareNav } from "@/components/eventra/role-aware-nav";
 import { Card, CardContent } from "@/components/ui/card";
+import { useI18n } from "@/lib/i18n/use-i18n";
 import type { UserRole } from "@/lib/types";
 
 type DashboardSidebarProps = {
@@ -16,6 +17,8 @@ export function DashboardSidebar({
   role,
   pathname,
 }: DashboardSidebarProps) {
+  const { t } = useI18n();
+
   return (
     <aside className="w-full max-w-80 shrink-0 rounded-[2rem] border border-white/70 bg-white/85 p-5 shadow-[0_24px_70px_rgba(15,23,42,0.08)] backdrop-blur-xl">
       <EventraLogo href="/dashboard" />
@@ -29,11 +32,10 @@ export function DashboardSidebar({
           </div>
           <div>
             <p className="font-heading text-base font-semibold text-slate-900">
-              Approval-centric ops
+              {t("marketing.approvals")}
             </p>
             <p className="mt-1 text-sm text-slate-600">
-              Manual payment verification, booking review, and ticket issuance
-              stay tightly controlled.
+              {t("marketing.approvalsDescription")}
             </p>
           </div>
         </CardContent>

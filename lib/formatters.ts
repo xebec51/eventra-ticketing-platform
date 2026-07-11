@@ -1,38 +1,23 @@
-const currencyFormatter = new Intl.NumberFormat("en-SG", {
-  style: "currency",
-  currency: "USD",
-  minimumFractionDigits: 2,
-});
+import { defaultLocale, type Locale } from "@/lib/i18n/locales";
+import {
+  formatI18nCompactNumber,
+  formatI18nCurrency,
+  formatI18nDateTime,
+  formatI18nShortDate,
+} from "@/lib/i18n/formatters";
 
-const shortDateFormatter = new Intl.DateTimeFormat("en-SG", {
-  day: "2-digit",
-  month: "short",
-  year: "numeric",
-});
-
-const dateTimeFormatter = new Intl.DateTimeFormat("en-SG", {
-  day: "2-digit",
-  month: "short",
-  year: "numeric",
-  hour: "2-digit",
-  minute: "2-digit",
-});
-
-export function formatCurrency(value: number | string) {
-  return currencyFormatter.format(Number(value));
+export function formatCurrency(value: number | string, locale: Locale = defaultLocale) {
+  return formatI18nCurrency(value, locale);
 }
 
-export function formatShortDate(value: Date | string) {
-  return shortDateFormatter.format(new Date(value));
+export function formatShortDate(value: Date | string, locale: Locale = defaultLocale) {
+  return formatI18nShortDate(value, locale);
 }
 
-export function formatDateTime(value: Date | string) {
-  return dateTimeFormatter.format(new Date(value));
+export function formatDateTime(value: Date | string, locale: Locale = defaultLocale) {
+  return formatI18nDateTime(value, locale);
 }
 
-export function formatCompactNumber(value: number) {
-  return new Intl.NumberFormat("en-SG", {
-    notation: "compact",
-    maximumFractionDigits: 1,
-  }).format(value);
+export function formatCompactNumber(value: number, locale: Locale = defaultLocale) {
+  return formatI18nCompactNumber(value, locale);
 }

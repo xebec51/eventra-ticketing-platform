@@ -7,11 +7,13 @@ import { signIn } from "next-auth/react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { useI18n } from "@/lib/i18n/use-i18n";
 import { Label } from "@/components/ui/label";
 
 export function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { t } = useI18n();
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
 
@@ -21,11 +23,11 @@ export function LoginForm() {
     }
 
     if (searchParams.get("role") === "organizer") {
-      return "Organizer application submitted. Sign in to track your status.";
+      return t("auth.organizerRegistered");
     }
 
-    return "Account created successfully. Sign in to continue.";
-  }, [searchParams]);
+    return t("auth.accountCreated");
+  }, [searchParams, t]);
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -44,12 +46,11 @@ export function LoginForm() {
       });
 
       if (!result || result.error) {
-        setError("Invalid email or password.");
+        setError(t("auth.invalidCredentials"));
         return;
       }
 
-      router.push(result.url || "/dashboard");
-      router.refresh();
+      router.replace(result.url || "/dashboard");
     });
   }
 
@@ -66,29 +67,31 @@ export function LoginForm() {
         </div>
       ) : null}
       <div className="space-y-2">
-        <Label htmlFor="email">Email</Label>
+        <Label htmlFor="email">{t("auth.email")}</Label>
         <Input
           id="email"
           name="email"
           type="email"
           placeholder="admin@eventra.demo"
           className="h-11 border-black/10"
+          disabled={isPending}
           required
         />
       </div>
       <div className="space-y-2">
-        <Label htmlFor="password">Password</Label>
+        <Label htmlFor="password">{t("auth.password")}</Label>
         <Input
           id="password"
           name="password"
           type="password"
           placeholder="Password123!"
           className="h-11 border-black/10"
+          disabled={isPending}
           required
         />
       </div>
       <Button className="h-11 w-full" disabled={isPending} type="submit">
-        {isPending ? "Signing in..." : "Sign in"}
+        {isPending ? t("auth.signingIn") : t("auth.signIn")}
       </Button>
     </form>
   );

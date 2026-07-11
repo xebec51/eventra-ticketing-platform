@@ -1,6 +1,10 @@
+"use client";
+
 import type { PaymentStatus } from "@/lib/types";
 
 import { StatusBadge } from "@/components/eventra/status-badge";
+import { useI18n } from "@/lib/i18n/use-i18n";
+import { translatePaymentStatus } from "@/lib/i18n/status";
 
 const paymentToneMap: Record<
   PaymentStatus,
@@ -15,5 +19,7 @@ const paymentToneMap: Record<
 };
 
 export function PaymentStatusBadge({ status }: { status: PaymentStatus }) {
-  return <StatusBadge label={status} tone={paymentToneMap[status]} />;
+  const { locale } = useI18n();
+
+  return <StatusBadge label={translatePaymentStatus(status, locale)} tone={paymentToneMap[status]} />;
 }

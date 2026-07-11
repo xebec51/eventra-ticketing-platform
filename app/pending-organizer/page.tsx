@@ -4,9 +4,12 @@ import { Hourglass } from "lucide-react";
 import { MarketingShell } from "@/components/eventra/marketing-shell";
 import { buttonVariants } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { getServerTranslator } from "@/lib/i18n/server";
 import { cn } from "@/lib/utils";
 
-export default function PendingOrganizerPage() {
+export default async function PendingOrganizerPage() {
+  const { t } = await getServerTranslator();
+
   return (
     <MarketingShell>
       <section className="mx-auto max-w-3xl px-4 py-20 text-center sm:px-6 lg:px-8">
@@ -17,15 +20,14 @@ export default function PendingOrganizerPage() {
             </div>
             <div className="space-y-3">
               <h1 className="font-heading text-4xl font-semibold tracking-tight">
-                Organizer application under review
+                {t("state.pendingOrganizerTitle")}
               </h1>
               <p className="mx-auto max-w-xl text-sm leading-7 text-muted-foreground sm:text-base">
-                Your account exists, but organizer access stays locked until an admin completes approval.
-                Once approved, you’ll be able to create and publish events from the organizer workspace.
+                {t("state.pendingOrganizerDescription")}
               </p>
             </div>
             <Link href="/dashboard" className={cn(buttonVariants({ size: "lg" }))}>
-              Back to dashboard
+              {t("state.backToDashboard")}
             </Link>
           </CardContent>
         </Card>

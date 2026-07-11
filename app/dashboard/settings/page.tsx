@@ -1,36 +1,41 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { requireSessionUser } from "@/lib/auth";
+import { getServerTranslator } from "@/lib/i18n/server";
+import { translateRole } from "@/lib/i18n/status";
 
 export default async function DashboardSettingsPage() {
   const user = await requireSessionUser();
+  const { locale, t } = await getServerTranslator();
 
   return (
     <div className="space-y-6">
       <Card className="border border-black/5 bg-white/90">
         <CardHeader>
-          <CardTitle className="font-heading text-2xl">Workspace settings</CardTitle>
+          <CardTitle className="font-heading text-2xl">
+            {t("dashboard.workspaceSettings")}
+          </CardTitle>
           <p className="mt-2 text-sm leading-6 text-muted-foreground">
-            Eventra keeps session control deliberately simple in this portfolio
-            build: auth is credentials-based, role routing is enforced by proxy,
-            and sensitive environment variables stay server-side only.
+            {t("dashboard.settingsDescription")}
           </p>
         </CardHeader>
         <CardContent className="grid gap-4 sm:grid-cols-2">
           <SettingCard
-            title="Current account"
+            title={t("dashboard.currentAccount")}
             body={`${user.name} • ${user.email}`}
           />
           <SettingCard
-            title="Role enforcement"
-            body={`${user.role} routes are protected before render.`}
+            title={t("dashboard.roleEnforcement")}
+            body={t("dashboard.roleEnforcementDescription", {
+              role: translateRole(user.role, locale),
+            })}
           />
           <SettingCard
-            title="Session model"
-            body="JWT session strategy via NextAuth/Auth.js credentials."
+            title={t("dashboard.sessionModel")}
+            body={t("dashboard.sessionModelDescription")}
           />
           <SettingCard
-            title="Secrets"
-            body="DATABASE_URL and auth secrets remain outside git and are read only on the server."
+            title={t("dashboard.secrets")}
+            body={t("dashboard.secretsDescription")}
           />
         </CardContent>
       </Card>

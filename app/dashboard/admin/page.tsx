@@ -11,10 +11,14 @@ import {
 } from "@/lib/analytics";
 import { requireRole } from "@/lib/auth";
 import { formatCompactNumber, formatCurrency } from "@/lib/formatters";
+import { getServerTranslator } from "@/lib/i18n/server";
+import { translateBookingStatus, translatePaymentStatus } from "@/lib/i18n/status";
 import { prisma } from "@/lib/prisma";
 
 export default async function AdminDashboardPage() {
   await requireRole("ADMIN");
+  const { locale, t } = await getServerTranslator();
+
   const [
     totalEvents,
     activeOrganizers,
@@ -82,11 +86,17 @@ export default async function AdminDashboardPage() {
   const bookingDistribution = buildDistribution(
     BOOKING_STATUS_ORDER,
     toCountRecord(bookingGroups, "status")
-  );
+  ).map((item) => ({
+    ...item,
+    label: translateBookingStatus(item.label as never, locale),
+  }));
   const paymentDistribution = buildDistribution(
     PAYMENT_STATUS_ORDER,
     toCountRecord(paymentGroups, "paymentStatus")
-  );
+  ).map((item) => ({
+    ...item,
+    label: translatePaymentStatus(item.label as never, locale),
+  }));
   const topEventsByRevenue = topEventRevenueGroups.map((group) => ({
     label: eventTitleMap.get(group.eventId) ?? group.eventId,
     value: Number(group._sum.totalAmount?.toString() ?? 0),
@@ -103,41 +113,66 @@ export default async function AdminDashboardPage() {
   return (
     <div className="space-y-6">
       <div className="grid gap-4 xl:grid-cols-4">
-        <StatCard label="Total events" value={formatCompactNumber(totalEvents)} change="All platform events" />
-        <StatCard label="Active organizers" value={String(activeOrganizers)} change={`${pendingOrganizers} pending approvals`} tone="success" />
-        <StatCard label="Total bookings" value={formatCompactNumber(totalBookings)} change={`${paidBookings} paid bookings`} tone="warning" />
-        <StatCard label="Revenue" value={formatCurrency(totalRevenue)} change="Paid bookings only" tone="success" />
+        <StatCard
+          label={t("dashboard.stats.totalEvents")}
+          value={formatCompactNumber(totalEvents, locale)}
+          change={t("dashboard.statChanges.allPlatformEvents")}
+        />
+        <StatCard
+          label={t("dashboard.stats.activeOrganizers")}
+          value={String(activeOrganizers)}
+          change={t("dashboard.statChanges.pendingApprovals", {
+            count: pendingOrganizers,
+          })}
+          tone="success"
+        />
+        <StatCard
+          label={t("dashboard.stats.totalBookings")}
+          value={formatCompactNumber(totalBookings, locale)}
+          change={t("dashboard.statChanges.paidBookings", {
+            count: paidBookings,
+          })}
+          tone="warning"
+        />
+        <StatCard
+          label={t("dashboard.stats.revenue")}
+          value={formatCurrency(totalRevenue, locale)}
+          change={t("dashboard.statChanges.paidBookingsOnly")}
+          tone="success"
+        />
       </div>
 
       <div className="grid gap-6 xl:grid-cols-2">
         <StatusPieChart
-          title="Booking status distribution"
-          description="Current platform-wide booking state across all events."
+          title={t("dashboard.admin.bookingDistribution")}
+          description={t("dashboard.admin.bookingDistributionDescription")}
           data={bookingDistribution}
         />
         <StatusPieChart
-          title="Payment status distribution"
-          description="Manual payment progress and automatic booking states."
+          title={t("dashboard.admin.paymentDistribution")}
+          description={t("dashboard.admin.paymentDistributionDescription")}
           data={paymentDistribution}
         />
       </div>
 
       <div className="grid gap-6 xl:grid-cols-2">
         <MetricBarChart
-          title="Top events by paid revenue"
-          description="Highest grossing events based on paid bookings."
+          title={t("dashboard.admin.topEventsByRevenue")}
+          description={t("dashboard.admin.topEventsByRevenueDescription")}
           data={topEventsByRevenue}
         />
         <MetricBarChart
-          title="Top categories"
-          description="Event category volume across the platform."
+          title={t("dashboard.admin.topCategories")}
+          description={t("dashboard.admin.topCategoriesDescription")}
           data={topCategories}
         />
       </div>
 
       <Card className="border border-black/5 bg-white/90">
         <CardHeader>
-          <CardTitle className="font-heading text-2xl">Recent activity</CardTitle>
+          <CardTitle className="font-heading text-2xl">
+            {t("dashboard.admin.recentActivity")}
+          </CardTitle>
         </CardHeader>
         <CardContent className="space-y-3">
           {recentLogs.map((log) => (
@@ -152,7 +187,8 @@ export default async function AdminDashboardPage() {
                 </div>
                 <p className="mt-3 text-sm text-slate-950">{log.description}</p>
                 <p className="mt-1 text-xs text-muted-foreground">
-                  {log.user?.name ?? "System"} • {log.createdAt.toLocaleString("en-SG")}
+                  {log.user?.name ?? t("dashboard.admin.system")} •{" "}
+                  {log.createdAt.toLocaleString(locale === "id" ? "id-ID" : "en-US")}
                 </p>
               </div>
             </div>

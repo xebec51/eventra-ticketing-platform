@@ -5,9 +5,11 @@ import { LogOut } from "lucide-react";
 import { signOut } from "next-auth/react";
 
 import { DropdownMenuItem } from "@/components/ui/dropdown-menu";
+import { useI18n } from "@/lib/i18n/use-i18n";
 
 export function SignOutButton() {
   const [isPending, startTransition] = useTransition();
+  const { t } = useI18n();
 
   return (
     <DropdownMenuItem
@@ -19,7 +21,7 @@ export function SignOutButton() {
       }
     >
       <LogOut className="size-4" />
-      {isPending ? "Signing out..." : "Sign out"}
+      {isPending ? t("auth.signingOut") : t("auth.signOut")}
     </DropdownMenuItem>
   );
 }
