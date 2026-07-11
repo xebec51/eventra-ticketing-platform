@@ -26,6 +26,7 @@ import {
   validatePaymentMethod,
 } from "@/lib/payments";
 import { prisma } from "@/lib/prisma";
+import { withSerializableRetry } from "@/lib/prisma-transaction";
 
 export type BookingFormState = {
   message?: string;
@@ -131,8 +132,9 @@ export async function createBookingAction(
     ...new Set(quantities.map((entry) => entry.ticketTypeId)),
   ];
 
-  const bookingResult = await prisma.$transaction(
-    async (tx) => {
+  const bookingResult = await withSerializableRetry(() =>
+    prisma.$transaction(
+      async (tx) => {
       await lockTicketTypesForUpdate(tx, selectedTicketTypeIds);
 
       const ticketTypes = await tx.ticketType.findMany({
@@ -270,10 +272,11 @@ export async function createBookingAction(
         autoApprove: initialState.autoApprove,
         bookingId: booking.id,
       };
-    },
-    {
-      isolationLevel: Prisma.TransactionIsolationLevel.Serializable,
-    }
+      },
+      {
+        isolationLevel: Prisma.TransactionIsolationLevel.Serializable,
+      }
+    )
   );
 
   if (!bookingResult.ok) {
@@ -361,14 +364,28 @@ export async function submitPaymentProofAction(
     return { message: "This booking already expired before the proof was uploaded." };
   }
 
-  await prisma.booking.update({
-    where: { id: booking.id },
+  const proofUpdate = await prisma.booking.updateMany({
+    where: {
+      id: booking.id,
+      status: BookingStatus.PENDING,
+      paymentStatus: {
+        in: [
+          PaymentStatus.UNPAID,
+          PaymentStatus.FAILED,
+          PaymentStatus.WAITING_CONFIRMATION,
+        ],
+      },
+    },
     data: {
       paymentProofUrl,
       paymentStatus: PaymentStatus.WAITING_CONFIRMATION,
       paymentNotes: null,
     },
   });
+
+  if (proofUpdate.count === 0) {
+    return { message: "This booking is no longer accepting payment proof updates." };
+  }
 
   await createActivityLog({
     userId: user.id,
@@ -404,8 +421,12 @@ export async function verifyPaymentAction(formData: FormData) {
     throw new Error("This booking is not currently waiting for confirmation.");
   }
 
-  await prisma.booking.update({
-    where: { id: booking.id },
+  const paymentUpdate = await prisma.booking.updateMany({
+    where: {
+      id: booking.id,
+      status: BookingStatus.PENDING,
+      paymentStatus: PaymentStatus.WAITING_CONFIRMATION,
+    },
     data: {
       paymentStatus: PaymentStatus.PAID,
       paymentVerifiedAt: new Date(),
@@ -414,14 +435,23 @@ export async function verifyPaymentAction(formData: FormData) {
     },
   });
 
-  await approveBooking({ bookingId: booking.id, approverId: user.id });
+  if (paymentUpdate.count === 0) {
+    throw new Error("This payment has already been processed.");
+  }
 
-  await createActivityLog({
-    userId: user.id,
-    action: "VERIFY_PAYMENT",
-    module: "payments",
-    description: `Verified payment and approved booking ${booking.bookingCode}.`,
+  const approval = await approveBooking({
+    bookingId: booking.id,
+    approverId: user.id,
   });
+
+  if (approval.approved) {
+    await createActivityLog({
+      userId: user.id,
+      action: "VERIFY_PAYMENT",
+      module: "payments",
+      description: `Verified payment and approved booking ${booking.bookingCode}.`,
+    });
+  }
 
   revalidatePath(`/dashboard/user/bookings/${booking.id}`);
   revalidatePath("/dashboard/admin/payments");
@@ -448,13 +478,21 @@ export async function failPaymentVerificationAction(formData: FormData) {
     throw new Error("This booking does not use a proof-based payment method.");
   }
 
-  await prisma.booking.update({
-    where: { id: booking.id },
+  const failureUpdate = await prisma.booking.updateMany({
+    where: {
+      id: booking.id,
+      status: BookingStatus.PENDING,
+      paymentStatus: PaymentStatus.WAITING_CONFIRMATION,
+    },
     data: {
       paymentStatus: PaymentStatus.FAILED,
       paymentNotes: paymentNotes || "Invalid payment proof.",
     },
   });
+
+  if (failureUpdate.count === 0) {
+    throw new Error("This payment has already been processed.");
+  }
 
   await createActivityLog({
     userId: user.id,
@@ -485,14 +523,19 @@ export async function approveCashBookingAction(formData: FormData) {
     throw new Error("This booking is not eligible for cash-on-venue approval.");
   }
 
-  await approveBooking({ bookingId: booking.id, approverId: user.id });
-
-  await createActivityLog({
-    userId: user.id,
-    action: "APPROVE_BOOKING",
-    module: "bookings",
-    description: `Approved cash-on-venue booking ${booking.bookingCode}.`,
+  const approval = await approveBooking({
+    bookingId: booking.id,
+    approverId: user.id,
   });
+
+  if (approval.approved) {
+    await createActivityLog({
+      userId: user.id,
+      action: "APPROVE_BOOKING",
+      module: "bookings",
+      description: `Approved cash-on-venue booking ${booking.bookingCode}.`,
+    });
+  }
 
   revalidatePath(`/dashboard/user/bookings/${booking.id}`);
   revalidatePath("/dashboard/admin/payments");
@@ -513,8 +556,8 @@ export async function rejectBookingAction(formData: FormData) {
     throw new Error("Only pending bookings can be rejected.");
   }
 
-  await prisma.booking.update({
-    where: { id: booking.id },
+  const rejection = await prisma.booking.updateMany({
+    where: { id: booking.id, status: BookingStatus.PENDING },
     data: {
       status: BookingStatus.REJECTED,
       rejectedReason,
@@ -529,6 +572,10 @@ export async function rejectBookingAction(formData: FormData) {
           : rejectedReason,
     },
   });
+
+  if (rejection.count === 0) {
+    throw new Error("This booking has already been processed.");
+  }
 
   await createActivityLog({
     userId: user.id,

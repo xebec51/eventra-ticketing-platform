@@ -76,14 +76,23 @@ export async function checkInTicketAction(
 
   const checkedInAt = new Date();
 
-  await prisma.ticket.update({
-    where: { id: ticket.id },
+  const checkInResult = await prisma.ticket.updateMany({
+    where: {
+      id: ticket.id,
+      status: TicketStatus.VALID,
+    },
     data: {
       status: TicketStatus.USED,
       checkedInAt,
       checkedInBy: user.id,
     },
   });
+
+  if (checkInResult.count === 0) {
+    return {
+      message: `Ticket ${ticket.ticketCode} has already been checked in or is no longer valid.`,
+    };
+  }
 
   await createActivityLog({
     userId: user.id,

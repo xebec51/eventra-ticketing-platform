@@ -5,11 +5,15 @@ import {
 } from "@/app/generated/prisma/enums";
 import { Prisma } from "@/app/generated/prisma/client";
 import { prisma } from "@/lib/prisma";
+import { withSerializableRetry } from "@/lib/prisma-transaction";
 import { generateBookingCode, generateTicketCode } from "@/lib/codes";
 import { buildQrPayload } from "@/lib/qr";
 
 type QuotaClient = Pick<typeof prisma, "$queryRaw" | "bookingItem">;
-type BookingClient = Pick<typeof prisma, "$queryRaw" | "booking" | "bookingItem">;
+type BookingClient = Pick<
+  typeof prisma,
+  "$queryRaw" | "booking" | "bookingItem" | "ticket"
+>;
 
 async function createUniqueCode(
   generator: () => string,
@@ -62,6 +66,18 @@ export async function lockTicketTypesForUpdate(
   `;
 }
 
+async function lockBookingForUpdate(
+  client: Pick<typeof prisma, "$queryRaw">,
+  bookingId: string
+) {
+  await client.$queryRaw<{ id: string }[]>`
+    SELECT id
+    FROM bookings
+    WHERE id = ${bookingId}
+    FOR UPDATE
+  `;
+}
+
 export async function getReservedQuantities(
   ticketTypeIds: string[],
   client: QuotaClient = prisma
@@ -89,44 +105,50 @@ export async function getReservedQuantities(
 }
 
 export async function generateTicketsForBooking(bookingId: string) {
-  const booking = await prisma.booking.findUnique({
-    where: { id: bookingId },
-    include: {
-      items: true,
-      event: { select: { id: true } },
-      tickets: { select: { id: true } },
-    },
-  });
-
-  if (!booking || booking.status !== BookingStatus.APPROVED) {
-    return;
-  }
-
   const appUrl = process.env.NEXT_PUBLIC_APP_URL || process.env.NEXTAUTH_URL;
 
-  for (const item of booking.items) {
-    const existingTickets = await prisma.ticket.count({
-      where: { bookingItemId: item.id },
-    });
+  await withSerializableRetry(() =>
+    prisma.$transaction(
+      async (tx: BookingClient) => {
+        await lockBookingForUpdate(tx, bookingId);
 
-    const missingTickets = item.quantity - existingTickets;
+        const booking = await tx.booking.findUnique({
+          where: { id: bookingId },
+          include: { items: true },
+        });
 
-    for (let index = 0; index < missingTickets; index += 1) {
-      const ticketCode = await createUniqueTicketCode();
+        if (!booking || booking.status !== BookingStatus.APPROVED) {
+          return;
+        }
 
-      await prisma.ticket.create({
-        data: {
-          ticketCode,
-          bookingId: booking.id,
-          bookingItemId: item.id,
-          eventId: booking.eventId,
-          userId: booking.userId,
-          ticketTypeId: item.ticketTypeId,
-          qrPayload: buildQrPayload(ticketCode, appUrl),
-        },
-      });
-    }
-  }
+        for (const item of booking.items) {
+          const existingTickets = await tx.ticket.count({
+            where: { bookingItemId: item.id },
+          });
+          const missingTickets = item.quantity - existingTickets;
+
+          for (let index = 0; index < missingTickets; index += 1) {
+            const ticketCode = generateTicketCode();
+
+            await tx.ticket.create({
+              data: {
+                ticketCode,
+                bookingId: booking.id,
+                bookingItemId: item.id,
+                eventId: booking.eventId,
+                userId: booking.userId,
+                ticketTypeId: item.ticketTypeId,
+                qrPayload: buildQrPayload(ticketCode, appUrl),
+              },
+            });
+          }
+        }
+      },
+      {
+        isolationLevel: Prisma.TransactionIsolationLevel.Serializable,
+      }
+    )
+  );
 }
 
 export async function expirePendingBookings() {
@@ -151,22 +173,33 @@ export async function approveBooking({
   bookingId: string;
   approverId: string;
 }) {
-  await prisma.$transaction(
-    async (tx: BookingClient) => {
-      const booking = await tx.booking.findUnique({
-        where: { id: bookingId },
-        include: {
-          items: {
-            include: {
-              ticketType: true,
+  const approvalResult = await withSerializableRetry(() =>
+    prisma.$transaction(
+      async (tx: BookingClient) => {
+        await lockBookingForUpdate(tx, bookingId);
+
+        const booking = await tx.booking.findUnique({
+          where: { id: bookingId },
+          include: {
+            items: {
+              include: {
+                ticketType: true,
+              },
             },
           },
-        },
-      });
+        });
 
-      if (!booking) {
-        throw new Error("Booking not found.");
-      }
+        if (!booking) {
+          throw new Error("Booking not found.");
+        }
+
+        if (booking.status === BookingStatus.APPROVED) {
+          return { approved: false };
+        }
+
+        if (booking.status !== BookingStatus.PENDING) {
+          throw new Error("Only pending bookings can be approved.");
+        }
 
       if (
         booking.paymentMethod === PaymentMethod.BANK_TRANSFER ||
@@ -210,11 +243,15 @@ export async function approveBooking({
           approvedBy: approverId,
         },
       });
-    },
-    {
-      isolationLevel: Prisma.TransactionIsolationLevel.Serializable,
-    }
+        return { approved: true };
+      },
+      {
+        isolationLevel: Prisma.TransactionIsolationLevel.Serializable,
+      }
+    )
   );
 
   await generateTicketsForBooking(bookingId);
+
+  return approvalResult;
 }
