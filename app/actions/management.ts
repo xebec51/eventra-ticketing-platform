@@ -350,6 +350,7 @@ export async function updateEventAction(
   _: ManagementFormState,
   formData: FormData
 ): Promise<ManagementFormState> {
+  await requireRole("ORGANIZER");
   const eventId = String(formData.get("eventId") || "");
   const { user, event } = await getScopedEventForMutation(eventId);
   const parsed = eventSchema.safeParse({
@@ -426,6 +427,7 @@ export async function updateEventAction(
 }
 
 export async function publishEventAction(formData: FormData) {
+  await requireSessionUser();
   const eventId = String(formData.get("eventId") || "");
   const { user, event } = await getEventForStatusAction(eventId);
 
@@ -459,6 +461,7 @@ export async function publishEventAction(formData: FormData) {
 }
 
 export async function unpublishEventAction(formData: FormData) {
+  await requireSessionUser();
   const eventId = String(formData.get("eventId") || "");
   const { user, event } = await getEventForStatusAction(eventId);
 
@@ -484,6 +487,7 @@ export async function unpublishEventAction(formData: FormData) {
 }
 
 export async function cancelEventAction(formData: FormData) {
+  await requireSessionUser();
   const eventId = String(formData.get("eventId") || "");
   const { user, event } = await getEventForStatusAction(eventId);
 
@@ -506,6 +510,7 @@ export async function cancelEventAction(formData: FormData) {
 }
 
 export async function deleteEventAction(formData: FormData) {
+  await requireRole("ORGANIZER");
   const eventId = String(formData.get("eventId") || "");
   const { user, event } = await getScopedEventForMutation(eventId);
 

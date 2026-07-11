@@ -2,11 +2,11 @@
 
 import { revalidatePath } from "next/cache";
 
-import { requireSessionUser } from "@/lib/auth";
+import { requireRole } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
 export async function toggleFavoriteEventAction(formData: FormData) {
-  const user = await requireSessionUser();
+  const user = await requireRole("USER");
   const eventId = String(formData.get("eventId") || "");
   const redirectPath = String(formData.get("redirectPath") || "/events");
 

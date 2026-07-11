@@ -8,6 +8,7 @@ import {
   PaymentMethod,
   PaymentStatus,
 } from "@/app/generated/prisma/enums";
+import { Prisma } from "@/app/generated/prisma/client";
 import { createActivityLog } from "@/lib/activity-log";
 import {
   approveBooking,
@@ -15,6 +16,7 @@ import {
   expirePendingBookings,
   generateTicketsForBooking,
   getReservedQuantities,
+  lockTicketTypesForUpdate,
 } from "@/lib/booking-service";
 import { requireRole, requireSessionUser } from "@/lib/auth";
 import {
@@ -114,10 +116,9 @@ export async function createBookingAction(
       status: "PUBLISHED",
       visibility: "PUBLIC",
     },
-    include: {
-      ticketTypes: {
-        where: { isActive: true },
-      },
+    select: {
+      id: true,
+      title: true,
     },
   });
 
@@ -125,114 +126,167 @@ export async function createBookingAction(
     return { message: "This event is no longer available for booking." };
   }
 
-  const activeTicketTypes = new Map(
-    event.ticketTypes.map((ticketType) => [ticketType.id, ticketType])
-  );
-  const selectedItems = quantities
-    .map((entry) => ({
-      ...entry,
-      ticketType: activeTicketTypes.get(entry.ticketTypeId),
-    }))
-    .filter((entry) => !!entry.ticketType);
-
-  if (selectedItems.length === 0) {
-    return { message: "No valid ticket types were selected." };
-  }
-
-  const reservedMap = await getReservedQuantities(
-    selectedItems.map((item) => item.ticketTypeId)
-  );
-
-  for (const item of selectedItems) {
-    if (!item.ticketType) continue;
-
-    const now = new Date();
-    if (
-      item.ticketType.salesStartAt &&
-      item.ticketType.salesStartAt.getTime() > now.getTime()
-    ) {
-      return {
-        message: `${item.ticketType.name} is not on sale yet.`,
-      };
-    }
-
-    if (
-      item.ticketType.salesEndAt &&
-      item.ticketType.salesEndAt.getTime() < now.getTime()
-    ) {
-      return {
-        message: `${item.ticketType.name} is no longer on sale.`,
-      };
-    }
-
-    if (item.quantity > item.ticketType.maxPerBooking) {
-      return {
-        message: `${item.ticketType.name} exceeds the max per booking limit.`,
-      };
-    }
-
-    const reserved = reservedMap.get(item.ticketTypeId) ?? 0;
-    if (reserved + item.quantity > item.ticketType.quota) {
-      return {
-        message: `${item.ticketType.name} does not have enough remaining quota.`,
-      };
-    }
-  }
-
-  const totalAmount = selectedItems.reduce((sum, item) => {
-    return sum + item.quantity * item.ticketType!.price.toNumber();
-  }, 0);
-
-  try {
-    validatePaymentMethod(totalAmount, paymentMethod);
-  } catch (error) {
-    return { message: error instanceof Error ? error.message : "Invalid payment method." };
-  }
-
-  const initialState = createInitialBookingState(totalAmount, paymentMethod);
   const bookingCode = await createUniqueBookingCode();
+  const selectedTicketTypeIds = [
+    ...new Set(quantities.map((entry) => entry.ticketTypeId)),
+  ];
 
-  const booking = await prisma.booking.create({
-    data: {
-      bookingCode,
-      userId: user.id,
-      eventId: event.id,
-      status: initialState.status,
-      paymentStatus: initialState.paymentStatus,
-      paymentMethod,
-      totalAmount,
-      notes: notes || undefined,
-      expiresAt: initialState.expiresAt,
-      approvedAt: initialState.autoApprove ? new Date() : undefined,
-      approvedBy: initialState.autoApprove ? user.id : undefined,
-      items: {
-        create: selectedItems.map((item) => ({
-          ticketTypeId: item.ticketTypeId,
-          quantity: item.quantity,
-          unitPrice: item.ticketType!.price,
-          subtotal: item.quantity * item.ticketType!.price.toNumber(),
-        })),
-      },
-    },
-    include: {
-      items: true,
-    },
-  });
+  const bookingResult = await prisma.$transaction(
+    async (tx) => {
+      await lockTicketTypesForUpdate(tx, selectedTicketTypeIds);
 
-  if (initialState.autoApprove) {
-    await generateTicketsForBooking(booking.id);
+      const ticketTypes = await tx.ticketType.findMany({
+        where: {
+          id: { in: selectedTicketTypeIds },
+          eventId: event.id,
+          isActive: true,
+        },
+      });
+
+      const activeTicketTypes = new Map(
+        ticketTypes.map((ticketType) => [ticketType.id, ticketType])
+      );
+      const selectedItems = quantities
+        .map((entry) => ({
+          ...entry,
+          ticketType: activeTicketTypes.get(entry.ticketTypeId),
+        }))
+        .filter((entry) => !!entry.ticketType);
+
+      if (selectedItems.length === 0) {
+        return {
+          ok: false as const,
+          state: { message: "No valid ticket types were selected." },
+        };
+      }
+
+      const reservedMap = await getReservedQuantities(
+        selectedItems.map((item) => item.ticketTypeId),
+        tx
+      );
+      const now = new Date();
+
+      for (const item of selectedItems) {
+        if (!item.ticketType) {
+          continue;
+        }
+
+        if (
+          item.ticketType.salesStartAt &&
+          item.ticketType.salesStartAt.getTime() > now.getTime()
+        ) {
+          return {
+            ok: false as const,
+            state: { message: `${item.ticketType.name} is not on sale yet.` },
+          };
+        }
+
+        if (
+          item.ticketType.salesEndAt &&
+          item.ticketType.salesEndAt.getTime() < now.getTime()
+        ) {
+          return {
+            ok: false as const,
+            state: { message: `${item.ticketType.name} is no longer on sale.` },
+          };
+        }
+
+        if (item.quantity > item.ticketType.maxPerBooking) {
+          return {
+            ok: false as const,
+            state: {
+              message: `${item.ticketType.name} exceeds the max per booking limit.`,
+            },
+          };
+        }
+
+        const reserved = reservedMap.get(item.ticketTypeId) ?? 0;
+        if (reserved + item.quantity > item.ticketType.quota) {
+          return {
+            ok: false as const,
+            state: {
+              message: `${item.ticketType.name} does not have enough remaining quota.`,
+            },
+          };
+        }
+      }
+
+      const totalAmount = selectedItems.reduce((sum, item) => {
+        return sum + item.quantity * item.ticketType!.price.toNumber();
+      }, 0);
+
+      try {
+        validatePaymentMethod(totalAmount, paymentMethod);
+      } catch (error) {
+        return {
+          ok: false as const,
+          state: {
+            message:
+              error instanceof Error ? error.message : "Invalid payment method.",
+          },
+        };
+      }
+
+      const initialState = createInitialBookingState(totalAmount, paymentMethod);
+      const booking = await tx.booking.create({
+        data: {
+          bookingCode,
+          userId: user.id,
+          eventId: event.id,
+          status: initialState.status,
+          paymentStatus: initialState.paymentStatus,
+          paymentMethod,
+          totalAmount,
+          notes: notes || undefined,
+          expiresAt: initialState.expiresAt,
+          approvedAt: initialState.autoApprove ? new Date() : undefined,
+          approvedBy: initialState.autoApprove ? user.id : undefined,
+          items: {
+            create: selectedItems.map((item) => ({
+              ticketTypeId: item.ticketTypeId,
+              quantity: item.quantity,
+              unitPrice: item.ticketType!.price,
+              subtotal: item.quantity * item.ticketType!.price.toNumber(),
+            })),
+          },
+        },
+        select: {
+          id: true,
+          bookingCode: true,
+        },
+      });
+
+      await tx.activityLog.create({
+        data: {
+          userId: user.id,
+          action: "CREATE",
+          module: "bookings",
+          description: `Created booking ${booking.bookingCode} for ${event.title}.`,
+        },
+      });
+
+      return {
+        ok: true as const,
+        autoApprove: initialState.autoApprove,
+        bookingId: booking.id,
+      };
+    },
+    {
+      isolationLevel: Prisma.TransactionIsolationLevel.Serializable,
+    }
+  );
+
+  if (!bookingResult.ok) {
+    return bookingResult.state;
   }
 
-  await createActivityLog({
-    userId: user.id,
-    action: "CREATE",
-    module: "bookings",
-    description: `Created booking ${booking.bookingCode} for ${event.title}.`,
-  });
+  if (bookingResult.autoApprove) {
+    await generateTicketsForBooking(bookingResult.bookingId);
+  }
 
-  revalidatePath(`/dashboard/user/bookings/${booking.id}`);
+  revalidatePath(`/dashboard/user/bookings/${bookingResult.bookingId}`);
   revalidatePath("/dashboard/user/bookings");
-  redirect(`/dashboard/user/bookings/${booking.id}`);
+  redirect(`/dashboard/user/bookings/${bookingResult.bookingId}`);
 }
 
 export async function submitPaymentProofAction(
@@ -330,6 +384,7 @@ export async function submitPaymentProofAction(
 }
 
 export async function verifyPaymentAction(formData: FormData) {
+  await requireSessionUser();
   const bookingId = String(formData.get("bookingId") || "");
   const paymentNotes = String(formData.get("paymentNotes") || "").trim();
   const { user, booking } = await getScopedOperatorBooking(bookingId);
@@ -377,6 +432,7 @@ export async function verifyPaymentAction(formData: FormData) {
 }
 
 export async function failPaymentVerificationAction(formData: FormData) {
+  await requireSessionUser();
   const bookingId = String(formData.get("bookingId") || "");
   const paymentNotes = String(formData.get("paymentNotes") || "").trim();
   const { user, booking } = await getScopedOperatorBooking(bookingId);
@@ -413,6 +469,7 @@ export async function failPaymentVerificationAction(formData: FormData) {
 }
 
 export async function approveCashBookingAction(formData: FormData) {
+  await requireSessionUser();
   const bookingId = String(formData.get("bookingId") || "");
   const { user, booking } = await getScopedOperatorBooking(bookingId);
 
@@ -446,6 +503,7 @@ export async function approveCashBookingAction(formData: FormData) {
 }
 
 export async function rejectBookingAction(formData: FormData) {
+  await requireSessionUser();
   const bookingId = String(formData.get("bookingId") || "");
   const rejectedReason =
     String(formData.get("rejectedReason") || "").trim() || "Rejected by organizer.";

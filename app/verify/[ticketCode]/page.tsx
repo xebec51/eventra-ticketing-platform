@@ -60,20 +60,39 @@ export default async function VerifyTicketPage({
         : ticket.status === "EXPIRED"
           ? "warning"
           : "danger";
+  const heroClass =
+    ticket.status === "VALID"
+      ? "bg-[linear-gradient(135deg,#064e3b_0%,#059669_48%,#34d399_100%)] p-8 text-white"
+      : ticket.status === "USED"
+        ? "bg-[linear-gradient(135deg,#0f172a_0%,#334155_55%,#64748b_100%)] p-8 text-white"
+        : "bg-[linear-gradient(135deg,#7f1d1d_0%,#e11d48_50%,#fb7185_100%)] p-8 text-white";
+  const verificationHeadline =
+    ticket.status === "VALID"
+      ? "Ready for entry"
+      : ticket.status === "USED"
+        ? "Already checked in"
+        : "Not eligible for entry";
 
   return (
     <MarketingShell>
       <section className="mx-auto max-w-4xl px-4 py-16 sm:px-6 lg:px-8">
         <Card className="overflow-hidden border border-black/5 bg-white/92">
-          <div className="bg-[linear-gradient(135deg,#231942_0%,#d46d42_45%,#ffcb69_100%)] p-8 text-white">
-            <div className="flex size-14 items-center justify-center rounded-2xl bg-white/12">
-              <QrCode className="size-6" />
+          <div className={heroClass}>
+            <div className="flex flex-wrap items-start justify-between gap-4">
+              <div className="flex size-14 items-center justify-center rounded-2xl bg-white/12">
+                <QrCode className="size-6" />
+              </div>
+              <StatusBadge
+                label={translateTicketStatus(ticket.status, locale)}
+                tone={statusTone}
+              />
             </div>
             <h1 className="mt-5 font-heading text-4xl font-semibold tracking-tight">
-              {t("nav.verifyTicket")}
+              {verificationHeadline}
             </h1>
             <p className="mt-3 max-w-2xl text-sm leading-7 text-white/80">
-              Public verification confirms whether a ticket belongs to an approved booking and whether it is still eligible for entry.
+              {t("nav.verifyTicket")} confirms whether this ticket belongs to
+              an approved booking and whether it is still eligible for entry.
             </p>
           </div>
           <CardHeader>

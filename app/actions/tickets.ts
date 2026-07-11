@@ -22,8 +22,8 @@ export async function checkInTicketAction(
   previousState: CheckInFormState = initialState,
   formData: FormData
 ): Promise<CheckInFormState> {
-  void previousState;
   const user = await requireSessionUser();
+  void previousState;
   const ticketCode = String(formData.get("ticketCode") || "").trim().toUpperCase();
 
   if (!ticketCode) {

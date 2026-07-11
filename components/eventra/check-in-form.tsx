@@ -1,6 +1,7 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useEffect, useRef } from "react";
+import { CheckCircle2, ScanLine, XCircle } from "lucide-react";
 
 import {
   checkInTicketAction,
@@ -10,30 +11,155 @@ import { AuthSubmitButton } from "@/components/eventra/auth-submit-button";
 import { Label } from "@/components/ui/label";
 
 const initialState: CheckInFormState = {};
+const scannerDebounceMs = 450;
+
+type WebAudioWindow = Window &
+  typeof globalThis & {
+    webkitAudioContext?: typeof AudioContext;
+  };
+
+function playCheckInTone(kind: "success" | "error") {
+  const AudioContextConstructor =
+    window.AudioContext ?? (window as WebAudioWindow).webkitAudioContext;
+
+  if (!AudioContextConstructor) {
+    return;
+  }
+
+  const audioContext = new AudioContextConstructor();
+  const oscillator = audioContext.createOscillator();
+  const gain = audioContext.createGain();
+
+  oscillator.type = kind === "success" ? "sine" : "sawtooth";
+  oscillator.frequency.setValueAtTime(
+    kind === "success" ? 880 : 180,
+    audioContext.currentTime
+  );
+  oscillator.frequency.exponentialRampToValueAtTime(
+    kind === "success" ? 1320 : 90,
+    audioContext.currentTime + 0.16
+  );
+  gain.gain.setValueAtTime(0.001, audioContext.currentTime);
+  gain.gain.exponentialRampToValueAtTime(0.18, audioContext.currentTime + 0.02);
+  gain.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + 0.22);
+
+  oscillator.connect(gain);
+  gain.connect(audioContext.destination);
+  oscillator.start();
+  oscillator.stop(audioContext.currentTime + 0.24);
+}
 
 export function CheckInForm() {
   const [state, formAction] = useActionState(checkInTicketAction, initialState);
+  const formRef = useRef<HTMLFormElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const lastSubmittedCodeRef = useRef("");
+
+  useEffect(() => {
+    if (state.success) {
+      playCheckInTone("success");
+      lastSubmittedCodeRef.current = "";
+    }
+
+    if (state.message) {
+      playCheckInTone("error");
+      lastSubmittedCodeRef.current = "";
+    }
+
+    inputRef.current?.focus();
+    inputRef.current?.select();
+  }, [state.message, state.success]);
+
+  function submitScannerValue(value: string) {
+    const normalizedCode = value.trim().toUpperCase();
+
+    if (normalizedCode.length < 6 || normalizedCode === lastSubmittedCodeRef.current) {
+      return;
+    }
+
+    lastSubmittedCodeRef.current = normalizedCode;
+    formRef.current?.requestSubmit();
+  }
+
+  const feedbackTone = state.success
+    ? "success"
+    : state.message
+      ? "error"
+      : "idle";
 
   return (
-    <form action={formAction} className="space-y-4">
-      {state.message ? (
-        <div className="rounded-2xl border border-rose-100 bg-rose-50 p-3 text-sm text-rose-700">
-          {state.message}
+    <form ref={formRef} action={formAction} className="space-y-4">
+      <div
+        className={
+          feedbackTone === "success"
+            ? "flex min-h-64 flex-col justify-between rounded-[2rem] bg-emerald-500 p-6 text-white shadow-2xl shadow-emerald-500/30"
+            : feedbackTone === "error"
+              ? "flex min-h-64 flex-col justify-between rounded-[2rem] bg-rose-600 p-6 text-white shadow-2xl shadow-rose-500/30"
+              : "flex min-h-64 flex-col justify-between rounded-[2rem] border border-black/5 bg-slate-950 p-6 text-white shadow-2xl shadow-slate-950/20"
+        }
+        aria-live="polite"
+      >
+        <div className="flex items-center justify-between gap-4">
+          <div className="flex size-14 items-center justify-center rounded-2xl bg-white/15">
+            {feedbackTone === "success" ? (
+              <CheckCircle2 className="size-7" />
+            ) : feedbackTone === "error" ? (
+              <XCircle className="size-7" />
+            ) : (
+              <ScanLine className="size-7" />
+            )}
+          </div>
+          <span className="rounded-full border border-white/20 bg-white/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.24em]">
+            {feedbackTone === "success"
+              ? "Valid check-in"
+              : feedbackTone === "error"
+                ? "Invalid ticket"
+                : "Scanner ready"}
+          </span>
         </div>
-      ) : null}
-      {state.success ? (
-        <div className="rounded-2xl border border-emerald-100 bg-emerald-50 p-3 text-sm text-emerald-700">
-          {state.success}
+        <div>
+          <p className="font-heading text-3xl font-semibold tracking-tight sm:text-4xl">
+            {state.success ?? state.message ?? "Scan or type a ticket code"}
+          </p>
+          <p className="mt-3 max-w-md text-sm leading-6 text-white/80">
+            {feedbackTone === "success"
+              ? "The attendee can enter. The field is ready for the next scan."
+              : feedbackTone === "error"
+                ? "Resolve the issue before admitting this attendee."
+                : "Most scanners submit automatically with Enter. Manual input also auto-submits after a short pause."}
+          </p>
         </div>
-      ) : null}
+      </div>
+
       <div className="space-y-2">
         <Label htmlFor="ticketCode">Ticket code</Label>
         <input
+          ref={inputRef}
           id="ticketCode"
           name="ticketCode"
           type="text"
-          className="h-11 w-full rounded-lg border border-black/10 bg-white px-3 text-sm uppercase"
+          autoComplete="off"
+          autoCapitalize="characters"
+          autoFocus
+          className="h-14 w-full rounded-2xl border border-black/10 bg-white px-4 font-mono text-base uppercase tracking-[0.18em] outline-none transition focus:border-[#d46d42] focus:ring-4 focus:ring-[#d46d42]/15"
           placeholder="TKT-XXXXXXXX"
+          onChange={(event) => {
+            if (debounceRef.current) {
+              clearTimeout(debounceRef.current);
+            }
+
+            const value = event.currentTarget.value;
+            debounceRef.current = setTimeout(() => {
+              submitScannerValue(value);
+            }, scannerDebounceMs);
+          }}
+          onKeyDown={(event) => {
+            if (event.key === "Enter") {
+              event.preventDefault();
+              submitScannerValue(event.currentTarget.value);
+            }
+          }}
         />
       </div>
       <AuthSubmitButton loadingLabel="Checking in...">

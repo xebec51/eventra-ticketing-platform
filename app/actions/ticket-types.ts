@@ -79,6 +79,8 @@ export async function createTicketTypeAction(
   _: TicketTypeFormState,
   formData: FormData
 ): Promise<TicketTypeFormState> {
+  await requireRole("ORGANIZER");
+
   const parsed = ticketTypeSchema.safeParse({
     eventId: formData.get("eventId"),
     name: formData.get("name"),
@@ -158,6 +160,8 @@ export async function updateTicketTypeAction(
   _: TicketTypeFormState,
   formData: FormData
 ): Promise<TicketTypeFormState> {
+  await requireRole("ORGANIZER");
+
   const parsed = ticketTypeSchema.safeParse({
     eventId: formData.get("eventId"),
     ticketTypeId: formData.get("ticketTypeId"),
@@ -236,6 +240,7 @@ export async function updateTicketTypeAction(
 }
 
 export async function toggleTicketTypeAction(formData: FormData) {
+  await requireRole("ORGANIZER");
   const ticketTypeId = String(formData.get("ticketTypeId") || "");
   const nextActive = String(formData.get("nextActive")) === "true";
   const { user, ticketType } = await getScopedTicketType(ticketTypeId);
@@ -258,6 +263,7 @@ export async function toggleTicketTypeAction(formData: FormData) {
 }
 
 export async function deleteTicketTypeAction(formData: FormData) {
+  await requireRole("ORGANIZER");
   const ticketTypeId = String(formData.get("ticketTypeId") || "");
   const { user, ticketType } = await getScopedTicketType(ticketTypeId);
 

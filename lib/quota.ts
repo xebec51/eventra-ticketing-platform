@@ -3,11 +3,22 @@ type QuotaInput = {
   reservedOrIssued: number;
 };
 
+function assertNonNegativeInteger(value: number, label: string) {
+  if (!Number.isInteger(value) || value < 0) {
+    throw new Error(`${label} must be a non-negative integer.`);
+  }
+}
+
 export function getRemainingQuota({ quota, reservedOrIssued }: QuotaInput) {
+  assertNonNegativeInteger(quota, "Ticket quota");
+  assertNonNegativeInteger(reservedOrIssued, "Reserved ticket quantity");
+
   return Math.max(quota - reservedOrIssued, 0);
 }
 
 export function hasEnoughQuota(input: QuotaInput, requestedQuantity: number) {
+  assertNonNegativeInteger(requestedQuantity, "Requested ticket quantity");
+
   return getRemainingQuota(input) >= requestedQuantity;
 }
 

@@ -3,9 +3,13 @@ import {
   PaymentMethod,
   PaymentStatus,
 } from "@/app/generated/prisma/enums";
+import { Prisma } from "@/app/generated/prisma/client";
 import { prisma } from "@/lib/prisma";
 import { generateBookingCode, generateTicketCode } from "@/lib/codes";
 import { buildQrPayload } from "@/lib/qr";
+
+type QuotaClient = Pick<typeof prisma, "$queryRaw" | "bookingItem">;
+type BookingClient = Pick<typeof prisma, "$queryRaw" | "booking" | "bookingItem">;
 
 async function createUniqueCode(
   generator: () => string,
@@ -42,12 +46,31 @@ export async function createUniqueTicketCode() {
   return createUniqueCode(generateTicketCode, "ticket");
 }
 
-export async function getReservedQuantities(ticketTypeIds: string[]) {
+export async function lockTicketTypesForUpdate(
+  client: Pick<typeof prisma, "$queryRaw">,
+  ticketTypeIds: string[]
+) {
+  if (ticketTypeIds.length === 0) {
+    return;
+  }
+
+  await client.$queryRaw<{ id: string }[]>`
+    SELECT id
+    FROM ticket_types
+    WHERE id IN (${Prisma.join(ticketTypeIds)})
+    FOR UPDATE
+  `;
+}
+
+export async function getReservedQuantities(
+  ticketTypeIds: string[],
+  client: QuotaClient = prisma
+) {
   if (ticketTypeIds.length === 0) {
     return new Map<string, number>();
   }
 
-  const reservations = await prisma.bookingItem.groupBy({
+  const reservations = await client.bookingItem.groupBy({
     by: ["ticketTypeId"],
     _sum: { quantity: true },
     where: {
@@ -128,59 +151,70 @@ export async function approveBooking({
   bookingId: string;
   approverId: string;
 }) {
-  const booking = await prisma.booking.findUnique({
-    where: { id: bookingId },
-    include: {
-      items: {
+  await prisma.$transaction(
+    async (tx: BookingClient) => {
+      const booking = await tx.booking.findUnique({
+        where: { id: bookingId },
         include: {
-          ticketType: true,
+          items: {
+            include: {
+              ticketType: true,
+            },
+          },
         },
-      },
+      });
+
+      if (!booking) {
+        throw new Error("Booking not found.");
+      }
+
+      if (
+        booking.paymentMethod === PaymentMethod.BANK_TRANSFER ||
+        booking.paymentMethod === PaymentMethod.E_WALLET
+      ) {
+        if (booking.paymentStatus !== PaymentStatus.PAID) {
+          throw new Error("Paid bookings must be marked PAID before approval.");
+        }
+      }
+
+      if (
+        booking.paymentMethod === PaymentMethod.FREE &&
+        booking.totalAmount.toNumber() !== 0
+      ) {
+        throw new Error(
+          "FREE payment method is only valid for zero-value bookings."
+        );
+      }
+
+      const ticketTypeIds = booking.items.map((item) => item.ticketTypeId);
+
+      await lockTicketTypesForUpdate(tx, ticketTypeIds);
+
+      const reservedMap = await getReservedQuantities(ticketTypeIds, tx);
+
+      for (const item of booking.items) {
+        const reserved = reservedMap.get(item.ticketTypeId) ?? 0;
+
+        if (reserved > item.ticketType.quota) {
+          throw new Error(
+            `Ticket quota exceeded for ${item.ticketType.name}. Please review inventory before approving this booking.`
+          );
+        }
+      }
+
+      await tx.booking.update({
+        where: { id: booking.id },
+        data: {
+          status: BookingStatus.APPROVED,
+          approvedAt: new Date(),
+          approvedBy: approverId,
+        },
+      });
     },
-  });
-
-  if (!booking) {
-    throw new Error("Booking not found.");
-  }
-
-  if (
-    booking.paymentMethod === PaymentMethod.BANK_TRANSFER ||
-    booking.paymentMethod === PaymentMethod.E_WALLET
-  ) {
-    if (booking.paymentStatus !== PaymentStatus.PAID) {
-      throw new Error("Paid bookings must be marked PAID before approval.");
+    {
+      isolationLevel: Prisma.TransactionIsolationLevel.Serializable,
     }
-  }
-
-  if (
-    booking.paymentMethod === PaymentMethod.FREE &&
-    booking.totalAmount.toNumber() !== 0
-  ) {
-    throw new Error("FREE payment method is only valid for zero-value bookings.");
-  }
-
-  const reservedMap = await getReservedQuantities(
-    booking.items.map((item) => item.ticketTypeId)
   );
 
-  for (const item of booking.items) {
-    const reserved = reservedMap.get(item.ticketTypeId) ?? 0;
-
-    if (reserved > item.ticketType.quota) {
-      throw new Error(
-        `Ticket quota exceeded for ${item.ticketType.name}. Please review inventory before approving this booking.`
-      );
-    }
-  }
-
-  await prisma.booking.update({
-    where: { id: booking.id },
-    data: {
-      status: BookingStatus.APPROVED,
-      approvedAt: new Date(),
-      approvedBy: approverId,
-    },
-  });
-
-  await generateTicketsForBooking(booking.id);
+  await generateTicketsForBooking(bookingId);
 }
