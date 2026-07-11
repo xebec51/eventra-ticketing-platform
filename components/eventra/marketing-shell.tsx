@@ -19,9 +19,8 @@ export function MarketingShell({ children }: MarketingShellProps) {
   const { t } = useI18n();
 
   return (
-    <div className="relative min-h-screen overflow-hidden bg-[radial-gradient(circle_at_top,_rgba(255,209,102,0.22),transparent_30%),linear-gradient(180deg,#fffdf8_0%,#fff8f2_46%,#f5f7fb_100%)]">
-      <div className="pointer-events-none absolute inset-x-0 top-0 h-72 bg-[radial-gradient(circle_at_25%_20%,rgba(255,138,91,0.2),transparent_28%),radial-gradient(circle_at_80%_10%,rgba(29,211,176,0.14),transparent_24%)]" />
-      <header className="sticky top-0 z-30 border-b border-white/70 bg-white/75 backdrop-blur-xl">
+    <div className="min-h-screen bg-slate-50">
+      <header className="sticky top-0 z-30 border-b border-slate-200 bg-white/95 backdrop-blur">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-4 sm:px-6 lg:px-8">
           <EventraLogo />
           <nav className="hidden items-center gap-5 lg:flex">
@@ -35,15 +34,15 @@ export function MarketingShell({ children }: MarketingShellProps) {
               </Link>
             ))}
           </nav>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 sm:gap-3">
             <LanguageSwitcher />
             <Link
               href="/register"
-              className={cn(buttonVariants({ variant: "ghost" }))}
+              className={cn(buttonVariants({ variant: "ghost" }), "hidden sm:inline-flex")}
             >
               {t("nav.createAccount")}
             </Link>
-            <Link href="/dashboard" className={cn(buttonVariants())}>
+            <Link href="/dashboard" className={cn(buttonVariants({ size: "sm" }))}>
               {t("nav.openDashboard")}
             </Link>
           </div>

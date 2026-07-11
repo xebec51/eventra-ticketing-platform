@@ -1,79 +1,46 @@
 "use client";
 
 import Link from "next/link";
-import { CalendarDays, Heart, MapPin, Star, Ticket } from "lucide-react";
+import { CalendarDays, MapPin } from "lucide-react";
 
-import { StatusBadge } from "@/components/eventra/status-badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { buttonVariants } from "@/components/ui/button";
 import { formatI18nShortDate } from "@/lib/i18n/formatters";
 import { useI18n } from "@/lib/i18n/use-i18n";
-import { cn } from "@/lib/utils";
 import type { EventSummary } from "@/lib/types";
 
 export function EventCard({ event }: { event: EventSummary }) {
   const { locale, t } = useI18n();
 
   return (
-    <Card className="eventra-panel group overflow-hidden rounded-xl transition duration-300 hover:-translate-y-1 hover:shadow-[0_26px_70px_rgba(15,23,42,0.14)]">
-      <div className={cn("relative h-56 overflow-hidden bg-gradient-to-br", event.imageAccent)}>
-        <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(17,24,39,0.12),rgba(17,24,39,0.72))]" />
-        <div className="absolute -right-10 top-8 h-36 w-36 rounded-full border border-white/20" />
-        <div className="absolute -right-2 top-20 h-20 w-20 rounded-full border border-white/20" />
-        <div className="flex h-full flex-col justify-between p-6 text-white">
-          <div className="flex items-center justify-between">
-            <StatusBadge label={event.category} tone="default" />
-            <div className="inline-flex items-center gap-1 rounded-md bg-white/15 px-3 py-1 text-xs font-medium backdrop-blur-sm">
-              <Heart className="size-3.5" />
-              {event.favorites}
-            </div>
-          </div>
-          <div className="space-y-3">
-            <p className="text-xs font-semibold uppercase text-white/80">
-              {event.city}
-            </p>
-            <h3 className="font-heading text-2xl font-semibold leading-tight">
-              {event.title}
-            </h3>
-          </div>
-        </div>
+    <Card className="group overflow-hidden border-slate-200 bg-white shadow-none transition hover:border-slate-300">
+      <div className="h-2 bg-slate-900" />
+      <div className="border-b border-slate-100 p-6">
+        <p className="text-sm font-medium text-amber-700">{event.category}</p>
+        <h3 className="mt-3 font-heading text-2xl font-semibold leading-tight text-slate-950">
+          {event.title}
+        </h3>
       </div>
-      <CardContent className="space-y-5 pt-6">
-        <p className="line-clamp-3 text-sm leading-6 text-muted-foreground">
-          {event.excerpt}
-        </p>
-        <div className="grid gap-3 text-sm text-slate-600 sm:grid-cols-2">
+      <CardContent className="space-y-5 pt-5">
+        <div className="space-y-3 text-sm text-slate-600">
           <div className="inline-flex items-center gap-2">
-            <CalendarDays className="size-4 text-[#d46d42]" />
+            <CalendarDays className="size-4 text-slate-400" />
             {formatI18nShortDate(event.startDate, locale)}
           </div>
           <div className="inline-flex items-center gap-2">
-            <MapPin className="size-4 text-[#d46d42]" />
-            {event.locationName}
-          </div>
-          <div className="inline-flex items-center gap-2">
-            <Star className="size-4 text-[#d46d42]" />
-            {event.rating.toFixed(1)} {t("events.ratingSuffix")}
-          </div>
-          <div className="inline-flex items-center gap-2">
-            <span className="font-semibold text-slate-900">{event.priceLabel}</span>
-            <span className="text-muted-foreground">{t("events.startingPrice")}</span>
+            <MapPin className="size-4 text-slate-400" />
+            {event.locationName}, {event.city}
           </div>
         </div>
-        <div className="eventra-ticket-edge -mx-2 flex items-center justify-between border-t border-dashed border-black/10 px-2 pt-4">
+        <div className="flex items-center justify-between border-t border-slate-100 pt-4">
           <div>
-            <p className="text-sm font-semibold text-slate-900">
-              {event.attendees.toLocaleString(locale === "id" ? "id-ID" : "en-US")} {t("events.attendees")}
-            </p>
-            <p className="text-xs text-muted-foreground">
-              {t("events.listingReady")}
-            </p>
+            <p className="font-semibold text-slate-950">{event.priceLabel}</p>
+            <p className="text-xs text-slate-500">{t("events.startingPrice")}</p>
           </div>
           <Link
             href={`/events/${event.slug}`}
-            className={cn(buttonVariants({ size: "sm" }), "rounded-lg")}
-        >
-            <Ticket className="size-4" />
+            className={buttonVariants({ size: "sm", variant: "outline" })}
+          >
             {t("events.viewDetail")}
           </Link>
         </div>

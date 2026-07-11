@@ -1,206 +1,95 @@
 import Link from "next/link";
 
-import { StatusPieChart } from "@/components/eventra/analytics-charts";
-import { StatCard } from "@/components/eventra/stat-card";
+import { EmptyState } from "@/components/eventra/empty-state";
 import { StatusBadge } from "@/components/eventra/status-badge";
 import { buttonVariants } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import {
-  BOOKING_STATUS_ORDER,
-  TICKET_STATUS_ORDER,
-  buildDistribution,
-  toCountRecord,
-} from "@/lib/analytics";
 import { requireRole } from "@/lib/auth";
 import { formatDateTime } from "@/lib/formatters";
 import { getServerTranslator } from "@/lib/i18n/server";
-import {
-  translateBookingStatus,
-  translatePaymentStatus,
-  translateTicketStatus,
-} from "@/lib/i18n/status";
+import { translateBookingStatus, translatePaymentStatus, translateTicketStatus } from "@/lib/i18n/status";
 import { prisma } from "@/lib/prisma";
 import { cn } from "@/lib/utils";
 
 export default async function UserDashboardPage() {
   const user = await requireRole("USER");
   const { locale, t } = await getServerTranslator();
-  const [
-    bookingGroups,
-    ticketGroups,
-    activeBookings,
-    waitingPayments,
-    favoriteEvents,
-    reviewCount,
-    recentBookings,
-    tickets,
-  ] = await Promise.all([
-    prisma.booking.groupBy({
-      by: ["status"],
-      where: { userId: user.id },
-      _count: { _all: true },
-    }),
-    prisma.ticket.groupBy({
-      by: ["status"],
-      where: { userId: user.id },
-      _count: { _all: true },
-    }),
-    prisma.booking.count({
-      where: { userId: user.id, status: { in: ["PENDING", "APPROVED"] } },
-    }),
-    prisma.booking.count({
-      where: { userId: user.id, paymentStatus: "WAITING_CONFIRMATION" },
-    }),
+  const [activeBookings, waitingPayments, favoriteEvents, recentBookings, tickets] = await Promise.all([
+    prisma.booking.count({ where: { userId: user.id, status: { in: ["PENDING", "APPROVED"] } } }),
+    prisma.booking.count({ where: { userId: user.id, paymentStatus: "WAITING_CONFIRMATION" } }),
     prisma.favoriteEvent.count({ where: { userId: user.id } }),
-    prisma.eventReview.count({ where: { userId: user.id } }),
     prisma.booking.findMany({
       where: { userId: user.id },
-      include: {
-        event: {
-          select: { title: true },
-        },
-      },
+      select: { id: true, bookingCode: true, status: true, paymentStatus: true, createdAt: true, event: { select: { title: true } } },
       orderBy: { createdAt: "desc" },
-      take: 5,
+      take: 4,
     }),
     prisma.ticket.findMany({
-      where: { userId: user.id },
-      include: {
-        event: {
-          select: { title: true, startDatetime: true },
-        },
-      },
-      orderBy: { createdAt: "desc" },
-      take: 5,
+      where: { userId: user.id, status: "VALID" },
+      select: { id: true, ticketCode: true, status: true, event: { select: { title: true, startDatetime: true } } },
+      orderBy: { event: { startDatetime: "asc" } },
+      take: 3,
     }),
   ]);
 
-  const usedTickets = tickets.filter((ticket) => ticket.status === "USED").length;
-  const bookingDistribution = buildDistribution(
-    BOOKING_STATUS_ORDER,
-    toCountRecord(bookingGroups, "status")
-  ).map((item) => ({
-    ...item,
-    label: translateBookingStatus(item.label as never, locale),
-  }));
-  const ticketDistribution = buildDistribution(
-    TICKET_STATUS_ORDER,
-    toCountRecord(ticketGroups, "status")
-  ).map((item) => ({
-    ...item,
-    label: translateTicketStatus(item.label as never, locale),
-  }));
-
   return (
-    <div className="space-y-6">
-      <div className="grid gap-4 xl:grid-cols-4">
-        <StatCard
-          label={t("dashboard.stats.activeBookings")}
-          value={String(activeBookings)}
-          change={t("dashboard.statChanges.pendingOrApproved")}
-        />
-        <StatCard
-          label={t("dashboard.stats.waitingPaymentReview")}
-          value={String(waitingPayments)}
-          change={t("dashboard.statChanges.proofUploaded")}
-          tone="warning"
-        />
-        <StatCard
-          label={t("dashboard.stats.favoriteEvents")}
-          value={String(favoriteEvents)}
-          change={t("dashboard.statChanges.reviewsSubmitted", { count: reviewCount })}
-          tone="success"
-        />
-        <StatCard
-          label={t("dashboard.stats.attendedEvents")}
-          value={String(usedTickets)}
-          change={t("dashboard.statChanges.usedTickets")}
-        />
-      </div>
+    <div className="space-y-8">
+      <Card className="border-slate-200 bg-white shadow-none">
+        <CardHeader><CardTitle className="text-lg">{t("nav.overview")}</CardTitle></CardHeader>
+        <CardContent className="grid gap-6 border-t border-slate-100 pt-6 sm:grid-cols-3">
+          <Metric label={t("dashboard.stats.activeBookings")} value={activeBookings} />
+          <Metric label={t("dashboard.stats.waitingPaymentReview")} value={waitingPayments} warning />
+          <Metric label={t("dashboard.stats.favoriteEvents")} value={favoriteEvents} />
+        </CardContent>
+      </Card>
 
-      <div className="grid gap-6 xl:grid-cols-2">
-        <StatusPieChart
-          title={t("dashboard.user.bookingSnapshot")}
-          description={t("dashboard.user.bookingSnapshotDescription")}
-          data={bookingDistribution}
-        />
-        <StatusPieChart
-          title={t("dashboard.user.ticketSnapshot")}
-          description={t("dashboard.user.ticketSnapshotDescription")}
-          data={ticketDistribution}
-        />
-      </div>
-
-      <div className="grid gap-6 xl:grid-cols-2">
-        <Card className="border border-black/5 bg-white/90">
-          <CardHeader className="flex flex-row items-center justify-between gap-4">
-            <CardTitle className="font-heading text-2xl">
-              {t("dashboard.user.recentBookings")}
-            </CardTitle>
-            <Link
-              href="/dashboard/user/bookings"
-              className={cn(buttonVariants({ size: "sm", variant: "outline" }))}
-            >
-              {t("common.viewAll")}
-            </Link>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            {recentBookings.map((booking) => (
-              <div
-                key={booking.id}
-                className="rounded-3xl border border-black/5 bg-slate-50 p-4"
-              >
-                <div className="flex flex-wrap items-center gap-2">
-                  <StatusBadge label={translateBookingStatus(booking.status, locale)} tone="warning" />
-                  <StatusBadge label={translatePaymentStatus(booking.paymentStatus, locale)} tone="muted" />
+      <Card className="border-slate-200 bg-white shadow-none">
+        <CardHeader className="flex flex-row items-center justify-between gap-4">
+          <CardTitle className="text-lg">{t("dashboard.user.recentTickets")}</CardTitle>
+          <Link href="/dashboard/user/tickets" className={cn(buttonVariants({ size: "sm" }))}>{t("dashboard.user.openWallet")}</Link>
+        </CardHeader>
+        <CardContent>
+          {tickets.length ? (
+            <div className="grid gap-4 lg:grid-cols-3">
+              {tickets.map((ticket) => (
+                <div key={ticket.id} className="border-l-2 border-amber-500 bg-slate-50 p-4">
+                  <StatusBadge label={translateTicketStatus(ticket.status, locale)} tone="success" />
+                  <p className="mt-4 font-medium text-slate-950">{ticket.event.title}</p>
+                  <p className="mt-1 text-sm text-slate-500">{formatDateTime(ticket.event.startDatetime, locale)}</p>
+                  <p className="mt-4 font-mono text-xs text-slate-500">{ticket.ticketCode}</p>
                 </div>
-                <p className="mt-3 font-semibold text-slate-950">
-                  {booking.event.title}
-                </p>
-                <p className="mt-1 text-sm text-muted-foreground">
-                  {booking.bookingCode} • {formatDateTime(booking.createdAt, locale)}
-                </p>
-              </div>
-            ))}
-          </CardContent>
-        </Card>
+              ))}
+            </div>
+          ) : (
+            <EmptyState title={t("dashboard.user.recentTickets")} description={t("dashboard.user.ticketSnapshotDescription")} />
+          )}
+        </CardContent>
+      </Card>
 
-        <Card className="border border-black/5 bg-white/90">
-          <CardHeader className="flex flex-row items-center justify-between gap-4">
-            <CardTitle className="font-heading text-2xl">
-              {t("dashboard.user.recentTickets")}
-            </CardTitle>
-            <Link
-              href="/dashboard/user/tickets"
-              className={cn(buttonVariants({ size: "sm", variant: "outline" }))}
-            >
-              {t("dashboard.user.openWallet")}
-            </Link>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            {tickets.map((ticket) => (
-              <div
-                key={ticket.id}
-                className="rounded-3xl border border-black/5 bg-slate-50 p-4"
-              >
-                <div className="flex flex-wrap items-center gap-2">
-                  <StatusBadge
-                    label={translateTicketStatus(ticket.status, locale)}
-                    tone={ticket.status === "VALID" ? "success" : "default"}
-                  />
-                  <StatusBadge label={ticket.ticketCode} tone="muted" />
-                </div>
-                <p className="mt-3 font-semibold text-slate-950">
-                  {ticket.event.title}
-                </p>
-                <p className="mt-1 text-sm text-muted-foreground">
-                  {formatDateTime(ticket.event.startDatetime, locale)}
-                </p>
+      <Card className="border-slate-200 bg-white shadow-none">
+        <CardHeader className="flex flex-row items-center justify-between gap-4">
+          <CardTitle className="text-lg">{t("dashboard.user.recentBookings")}</CardTitle>
+          <Link href="/dashboard/user/bookings" className={cn(buttonVariants({ size: "sm", variant: "outline" }))}>{t("common.viewAll")}</Link>
+        </CardHeader>
+        <CardContent className="divide-y divide-slate-100">
+          {recentBookings.map((booking) => (
+            <div key={booking.id} className="flex flex-col justify-between gap-3 py-4 first:pt-0 last:pb-0 sm:flex-row sm:items-center">
+              <div>
+                <p className="font-medium text-slate-950">{booking.event.title}</p>
+                <p className="mt-1 text-sm text-slate-500">{booking.bookingCode} · {formatDateTime(booking.createdAt, locale)}</p>
               </div>
-            ))}
-          </CardContent>
-        </Card>
-      </div>
+              <div className="flex gap-2">
+                <StatusBadge label={translateBookingStatus(booking.status, locale)} tone={booking.status === "APPROVED" ? "success" : "warning"} />
+                <StatusBadge label={translatePaymentStatus(booking.paymentStatus, locale)} tone="muted" />
+              </div>
+            </div>
+          ))}
+        </CardContent>
+      </Card>
     </div>
   );
+}
+
+function Metric({ label, value, warning = false }: { label: string; value: number; warning?: boolean }) {
+  return <div><p className="text-sm text-slate-500">{label}</p><p className={warning && value > 0 ? "mt-2 text-3xl font-semibold text-amber-700" : "mt-2 text-3xl font-semibold text-slate-950"}>{value}</p></div>;
 }

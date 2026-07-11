@@ -1,8 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { CalendarDays, Clock3, MapPin, Star, Ticket } from "lucide-react";
+import { CalendarDays, MapPin, Ticket } from "lucide-react";
 
-import { BookingStatusBadge } from "@/components/eventra/booking-status-badge";
 import { BookingForm } from "@/components/eventra/booking-form";
 import { FavoriteEventButton } from "@/components/eventra/favorite-event-button";
 import { MarketingShell } from "@/components/eventra/marketing-shell";
@@ -92,10 +91,6 @@ export default async function EventDetailPage({
   const isFavorite = !!user
     ? event.favoriteEvents.some((favorite) => favorite.userId === user.id)
     : false;
-  const averageRating = event.eventReviews.length
-    ? event.eventReviews.reduce((sum, review) => sum + review.rating, 0) /
-      event.eventReviews.length
-    : 0;
   const bookingTicketTypes = event.ticketTypes.map((ticketType) => {
     const reserved = reservedMap.get(ticketType.id) ?? 0;
     const available = Math.max(ticketType.quota - reserved, 0);
@@ -120,31 +115,23 @@ export default async function EventDetailPage({
   return (
     <MarketingShell>
       <section className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
-        <div className="relative overflow-hidden rounded-2xl bg-slate-950 p-8 text-white shadow-[0_30px_100px_rgba(17,24,39,0.28)] lg:p-10">
-          <div className="absolute inset-0 bg-[linear-gradient(135deg,#111827_0%,#24174f_48%,#1f3a8a_100%)]" />
-          <div className="absolute -right-16 top-10 h-56 w-56 rounded-full border border-white/15" />
-          <div className="absolute -right-2 top-32 h-24 w-24 rounded-full border border-white/15" />
-          <div className="relative">
+        <div className="border-b border-slate-200 pb-10">
           <div className="flex flex-wrap items-center gap-3">
             <StatusBadge label={event.category.name} tone="default" />
-            <StatusBadge label={event.city} tone="warning" />
+            <span className="text-sm text-slate-500">{event.city}</span>
           </div>
-          <h1 className="mt-6 max-w-4xl font-heading text-4xl font-semibold tracking-tight sm:text-5xl">
+          <h1 className="mt-6 max-w-4xl font-heading text-4xl font-semibold tracking-tight text-slate-950 sm:text-5xl">
             {event.title}
           </h1>
-          <p className="mt-4 max-w-2xl text-sm leading-7 text-white/80 sm:text-base">
+          <p className="mt-4 max-w-3xl text-sm leading-7 text-slate-600 sm:text-base">
             {event.description}
           </p>
-          <div className="mt-8 grid gap-4 text-sm sm:grid-cols-2 xl:grid-cols-4">
+          <div className="mt-7 flex flex-col gap-3 text-sm text-slate-600 sm:flex-row sm:flex-wrap sm:gap-6">
             <InfoPill
               icon={<CalendarDays className="size-4" />}
               label={formatEventDateRange(event.startDatetime, event.endDatetime, locale)}
             />
             <InfoPill icon={<MapPin className="size-4" />} label={event.locationName} />
-            <InfoPill
-              icon={<Star className="size-4" />}
-              label={`${averageRating.toFixed(1)} ${t("events.ratingSuffix")}`}
-            />
             <InfoPill
               icon={<Ticket className="size-4" />}
               label={
@@ -153,7 +140,6 @@ export default async function EventDetailPage({
                   : t("status.paymentMethod.FREE")
               }
             />
-          </div>
           </div>
         </div>
 
@@ -164,29 +150,12 @@ export default async function EventDetailPage({
                 {t("nav.overview")}
                 </CardTitle>
               </CardHeader>
-            <CardContent className="space-y-6 text-sm leading-7 text-muted-foreground">
-              <p>
-                Hosted by {event.organizerProfile.organizationName}, this listing
-                exposes live ticket inventory, attendee feedback, and approval
-                expectations before checkout begins.
-              </p>
-              <div className="grid gap-4 sm:grid-cols-2">
-                <FeaturePanel
-                  title="Ticket types"
-                  description="Organizer-configured tiers support free, paid, and sales-window based inventory."
-                />
-                <FeaturePanel
-                  title="Manual approval model"
-                  description="Paid bookings stay pending until proof is reviewed, while cash-on-venue still requires approval before ticket issuance."
-                />
-                <FeaturePanel
-                  title="Review eligibility"
-                  description="Attendees can only review after the event ends and a ticket for that event has been checked in as used."
-                />
-                <FeaturePanel
-                  title="QR verification"
-                  description="Frontend-generated QR output points to the public verify route backed by ticket code validation."
-                />
+            <CardContent className="space-y-8 text-sm leading-7 text-muted-foreground">
+              <div>
+                <p className="text-xs font-medium text-slate-500">{t("nav.organizers")}</p>
+                <p className="mt-2 text-base font-semibold text-slate-950">
+                  {event.organizerProfile.organizationName}
+                </p>
               </div>
               <div className="space-y-3">
                 <h3 className="font-heading text-xl font-semibold text-slate-950">
@@ -202,7 +171,7 @@ export default async function EventDetailPage({
                         <p className="font-semibold text-slate-900">
                         {review.user.name}
                       </p>
-                      <StatusBadge label={`${review.rating}/5`} tone="warning" />
+                      <span className="text-sm font-medium text-amber-700">{review.rating}/5</span>
                       </div>
                       <p className="mt-2 text-sm leading-6 text-muted-foreground">
                         {review.comment || "No written comment provided."}
@@ -224,7 +193,7 @@ export default async function EventDetailPage({
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="flex items-center justify-between gap-3">
+                <div className="flex items-center justify-between gap-3 border-b border-slate-100 pb-4">
                   <FavoriteEventButton
                     eventId={event.id}
                     redirectPath={`/events/${event.slug}`}
@@ -236,15 +205,6 @@ export default async function EventDetailPage({
                     label={`${event._count.bookings} bookings`}
                     tone="default"
                   />
-                </div>
-                <div className="rounded-xl border border-black/5 bg-slate-50 p-4">
-                  <p className="text-sm font-semibold text-slate-900">
-                    Primary CTA
-                  </p>
-                  <p className="mt-2 text-sm leading-6 text-muted-foreground">
-                    Guests are redirected to login before protected actions such
-                    as booking and favoriting.
-                  </p>
                 </div>
                 <div className="grid gap-3">
                   {bookingTicketTypes.map((ticketType) => (
@@ -276,31 +236,6 @@ export default async function EventDetailPage({
                 )}
               </CardContent>
             </Card>
-            <Card className="eventra-panel rounded-xl">
-              <CardHeader>
-                <CardTitle className="font-heading text-xl">
-                  Expected flows
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                <FlowRow
-                  label="Payment review"
-                  badge={<BookingStatusBadge status="PENDING" />}
-                />
-                <FlowRow
-                  label="Approval and ticket issuance"
-                  badge={<BookingStatusBadge status="APPROVED" />}
-                />
-                <FlowRow
-                  label="Expiry handling"
-                  badge={<StatusBadge label="24h deadline" tone="warning" />}
-                />
-                <FlowRow
-                  label="Check-in status"
-                  badge={<StatusBadge label="Ticket-level only" tone="default" />}
-                />
-              </CardContent>
-            </Card>
           </div>
         </div>
       </section>
@@ -316,26 +251,9 @@ function InfoPill({
   label: string;
 }) {
   return (
-    <div className="inline-flex items-center gap-2 rounded-lg bg-white/12 px-4 py-2.5 backdrop-blur">
+    <div className="inline-flex items-center gap-2">
       {icon}
       {label}
-    </div>
-  );
-}
-
-function FeaturePanel({
-  title,
-  description,
-}: {
-  title: string;
-  description: string;
-}) {
-  return (
-    <div className="rounded-xl border border-black/5 bg-slate-50 p-4">
-      <p className="font-heading text-lg font-semibold text-slate-900">{title}</p>
-      <p className="mt-2 text-sm leading-6 text-muted-foreground">
-        {description}
-      </p>
     </div>
   );
 }
@@ -356,24 +274,6 @@ function TicketTier({
         <p className="mt-1 text-sm text-muted-foreground">{note}</p>
       </div>
       <p className="font-heading text-xl font-semibold text-slate-950">{price}</p>
-    </div>
-  );
-}
-
-function FlowRow({
-  label,
-  badge,
-}: {
-  label: string;
-  badge: React.ReactNode;
-}) {
-  return (
-    <div className="flex items-center justify-between rounded-xl border border-black/5 bg-slate-50 px-4 py-3">
-      <div className="inline-flex items-center gap-2 text-sm font-medium text-slate-700">
-        <Clock3 className="size-4 text-[#d46d42]" />
-        {label}
-      </div>
-      {badge}
     </div>
   );
 }

@@ -4,7 +4,6 @@ import { Search } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Card, CardContent } from "@/components/ui/card";
 import { useI18n } from "@/lib/i18n/use-i18n";
 
 export function EventFilters({
@@ -25,12 +24,10 @@ export function EventFilters({
   const { t } = useI18n();
 
   return (
-    <Card className="border border-black/5 bg-white/90">
-      <CardContent>
-        <form
-          action="/events"
-          className="grid gap-4 pt-6 lg:grid-cols-[1.8fr_1fr_1fr_1fr_auto]"
-        >
+    <form
+      action="/events"
+      className="grid gap-3 lg:grid-cols-[1.8fr_1fr_1fr_1fr_auto]"
+    >
         <div className="relative">
           <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
           <Input
@@ -76,8 +73,6 @@ export function EventFilters({
           <Button className="h-11" type="submit">
             {t("common.apply")}
           </Button>
-        </form>
-      </CardContent>
-    </Card>
+    </form>
   );
 }

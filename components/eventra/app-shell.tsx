@@ -15,9 +15,9 @@ export function AppShell({
 }) {
   return (
     <div className="min-h-screen bg-transparent">
-      <div className="mx-auto flex max-w-[1680px] flex-col gap-5 px-3 py-4 sm:px-4 lg:flex-row lg:px-5">
+      <div className="mx-auto flex max-w-[1540px] flex-col gap-6 px-3 py-4 sm:px-5 lg:flex-row lg:px-6 lg:py-6">
         {sidebar}
-        <div className={cn("min-w-0 flex-1 space-y-6", className)}>
+        <div className={cn("min-w-0 flex-1 space-y-8", className)}>
           {header}
           {children}
         </div>

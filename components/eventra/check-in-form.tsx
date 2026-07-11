@@ -9,6 +9,7 @@ import {
 } from "@/app/actions/tickets";
 import { AuthSubmitButton } from "@/components/eventra/auth-submit-button";
 import { Label } from "@/components/ui/label";
+import { useI18n } from "@/lib/i18n/use-i18n";
 
 const initialState: CheckInFormState = {};
 const scannerDebounceMs = 450;
@@ -50,6 +51,7 @@ function playCheckInTone(kind: "success" | "error") {
 }
 
 export function CheckInForm() {
+  const { t } = useI18n();
   const [state, formAction] = useActionState(checkInTicketAction, initialState);
   const formRef = useRef<HTMLFormElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -112,28 +114,28 @@ export function CheckInForm() {
           </div>
           <span className="rounded-full border border-white/20 bg-white/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.24em]">
             {feedbackTone === "success"
-              ? "Valid check-in"
+              ? t("checkInDesk.valid")
               : feedbackTone === "error"
-                ? "Invalid ticket"
-                : "Scanner ready"}
+                ? t("checkInDesk.invalid")
+                : t("checkInDesk.scannerReady")}
           </span>
         </div>
         <div>
           <p className="font-heading text-3xl font-semibold tracking-tight sm:text-4xl">
-            {state.success ?? state.message ?? "Scan or type a ticket code"}
+            {state.success ?? state.message ?? t("checkInDesk.scanPrompt")}
           </p>
           <p className="mt-3 max-w-md text-sm leading-6 text-white/80">
             {feedbackTone === "success"
-              ? "The attendee can enter. The field is ready for the next scan."
+              ? t("checkInDesk.successHelp")
               : feedbackTone === "error"
-                ? "Resolve the issue before admitting this attendee."
-                : "Most scanners submit automatically with Enter. Manual input also auto-submits after a short pause."}
+                ? t("checkInDesk.errorHelp")
+                : t("checkInDesk.idleHelp")}
           </p>
         </div>
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="ticketCode">Ticket code</Label>
+        <Label htmlFor="ticketCode">{t("checkInDesk.ticketCode")}</Label>
         <input
           ref={inputRef}
           id="ticketCode"
@@ -162,8 +164,8 @@ export function CheckInForm() {
           }}
         />
       </div>
-      <AuthSubmitButton loadingLabel="Checking in...">
-        Check in attendee
+      <AuthSubmitButton loadingLabel={t("checkInDesk.checking")}>
+        {t("checkInDesk.submit")}
       </AuthSubmitButton>
 
       {state.ticketCode ? (
@@ -171,7 +173,7 @@ export function CheckInForm() {
           <p className="font-semibold text-slate-950">{state.ticketCode}</p>
           <p className="mt-1">{state.attendeeName}</p>
           <p>{state.eventTitle}</p>
-          <p className="mt-2">Checked in at {state.checkedInAt}</p>
+          <p className="mt-2">{t("checkInDesk.checkedAt")} {state.checkedInAt}</p>
         </div>
       ) : null}
     </form>
