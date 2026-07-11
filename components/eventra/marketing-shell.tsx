@@ -3,6 +3,7 @@
 import type { ReactNode } from "react";
 import Link from "next/link";
 
+import { AppFooter } from "@/components/eventra/app-footer";
 import { EventraLogo } from "@/components/eventra/logo";
 import { LanguageSwitcher } from "@/components/language-switcher";
 import { publicNavItems } from "@/lib/navigation";
@@ -49,21 +50,7 @@ export function MarketingShell({ children }: MarketingShellProps) {
         </div>
       </header>
       <main>{children}</main>
-      <footer className="border-t border-black/5 bg-white/70">
-        <div className="mx-auto flex max-w-7xl flex-col gap-6 px-4 py-10 sm:px-6 lg:flex-row lg:items-center lg:justify-between lg:px-8">
-          <div>
-            <p className="font-heading text-lg font-semibold">Eventra</p>
-            <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
-              {t("marketing.footerDescription")}
-            </p>
-          </div>
-          <div className="flex flex-wrap gap-4 text-sm text-muted-foreground">
-            <Link href="/events">{t("nav.browseEvents")}</Link>
-            <Link href="/register/organizer">{t("nav.organizerRegistration")}</Link>
-            <Link href="/verify/TKT-DEMO2026">{t("nav.verifyTicket")}</Link>
-          </div>
-        </div>
-      </footer>
+      <AppFooter />
     </div>
   );
 }

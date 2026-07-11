@@ -212,6 +212,29 @@ export const id = {
     checkInDescription:
       "Validasi oleh penyelenggara dan admin dengan perlindungan penggunaan ganda.",
   },
+  footer: {
+    description:
+      "Platform operasional acara premium untuk discovery, persetujuan, pemesanan, tiket QR, review pembayaran manual, dan alur check-in.",
+    product: "Produk",
+    developer: "Developer",
+    rights: "© {year} Eventra. Dibangun oleh Muh. Rinaldi Ruslan.",
+    links: {
+      home: "Beranda",
+      events: "Acara",
+      login: "Masuk",
+      dashboard: "Dasbor",
+      verifyTicket: "Verifikasi tiket",
+    },
+  },
+  developer: {
+    role: "Full-Stack Developer",
+    github: "Lihat GitHub",
+    linkedin: "Lihat LinkedIn",
+    email: "Hubungi Developer",
+    portfolioProject: "Proyek Portofolio",
+    portfolioDescription:
+      "Proyek ini merupakan bagian dari portofolio full-stack yang berfokus pada aplikasi SaaS siap produksi.",
+  },
   events: {
     catalogEyebrow: "Katalog acara",
     catalogTitle: "Temukan acara yang tepat dengan cepat",

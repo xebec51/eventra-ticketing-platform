@@ -210,6 +210,29 @@ export const en = {
     checkInDescription:
       "Organizer and admin validation with duplicate-use protection.",
   },
+  footer: {
+    description:
+      "A premium event operations platform for discovery, approvals, bookings, QR ticketing, manual payment review, and check-in workflows.",
+    product: "Product",
+    developer: "Developer",
+    rights: "© {year} Eventra. Built by Muh. Rinaldi Ruslan.",
+    links: {
+      home: "Home",
+      events: "Events",
+      login: "Login",
+      dashboard: "Dashboard",
+      verifyTicket: "Ticket verification",
+    },
+  },
+  developer: {
+    role: "Full-Stack Developer",
+    github: "View GitHub",
+    linkedin: "View LinkedIn",
+    email: "Contact Developer",
+    portfolioProject: "Portfolio Project",
+    portfolioDescription:
+      "This project is part of a full-stack portfolio focused on production-grade SaaS applications.",
+  },
   events: {
     catalogEyebrow: "Event catalog",
     catalogTitle: "Find the right event, fast",
